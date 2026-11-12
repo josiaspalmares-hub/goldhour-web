@@ -178,7 +178,7 @@ export const frascos: Perfume[] = [
 
 export const decants: Perfume[] = [
   {
-    id: 'jean-lowe-immortel', casa: 'Maison Alhambra', nombre: 'Jean Lowe Immortel', concentracion: 'Eau de Parfum', para: 'Él',
+    id: 'jean-lowe-immortel', casa: 'Maison Alhambra', nombre: 'Jean Lowe Immortal', concentracion: 'Eau de Parfum', para: 'Él',
     frase: 'De los frescos que más cumplidos reciben en el calor.',
     ficha: {
       familia: 'Fresco acuático',
