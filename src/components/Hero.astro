@@ -1,0 +1,221 @@
+---
+import { getImage } from 'astro:assets';
+import logoNombre from '../assets/marca/logo-nombre-oro.svg?raw';
+import frascoHero from '../assets/perfumes/khamrah-qahwa.png';
+import { WHATSAPP } from '../data/perfumes';
+
+// La misma imagen sirve de foto y de máscara para que la luz solo toque el vidrio.
+const foto = await getImage({ src: frascoHero, width: 900, format: 'webp' });
+const fotoMovil = await getImage({ src: frascoHero, width: 560, format: 'webp' });
+const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero información de un perfume.');
+---
+
+<section class="hero" aria-labelledby="hero-titulo">
+  <div class="hero__luz-fondo" aria-hidden="true"></div>
+
+  <div class="hero__grid contenedor">
+    <div class="hero__texto">
+      <p class="etiqueta hero__paso">Maison de Parfums · Caracas</p>
+      <h1 id="hero-titulo" class="hero__marca hero__paso">
+        <span class="solo-lector">Goldhour</span>
+        <span class="hero__logo" aria-hidden="true" set:html={logoNombre} />
+      </h1>
+      <p class="hero__lema hero__paso">Perfumes originales y sellados. Y decants para probarlos antes del frasco.</p>
+      <div class="hero__acciones hero__paso">
+        <a class="boton boton--principal" href={`https://wa.me/${WHATSAPP}?text=${mensaje}`} target="_blank" rel="noopener">
+          Escríbenos por WhatsApp
+        </a>
+      </div>
+      <p class="hero__dato hero__paso">Delivery en Caracas · Envíos por MRW, Zoom y Tealca</p>
+    </div>
+
+    <figure class="hero__frasco hero__paso" style={`--mascara: url(${foto.src})`}>
+      <div class="hero__base" aria-hidden="true"></div>
+      <img
+        src={foto.src}
+        srcset={`${fotoMovil.src} 560w, ${foto.src} 900w`}
+        sizes="(max-width: 767px) 70vw, 40vw"
+        width={frascoHero.width}
+        height={frascoHero.height}
+        alt="Frasco de Khamrah Qahwa de Lattafa"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <div class="hero__brillo" aria-hidden="true"><span class="hero__franja"></span></div>
+      <figcaption class="hero__pie">
+        <span class="etiqueta">Lattafa</span>
+        <span class="hero__pie-nombre">Khamrah Qahwa</span>
+      </figcaption>
+    </figure>
+  </div>
+</section>
+
+<script>
+  import { gsap } from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pasos = document.querySelectorAll('.hero__paso');
+
+  // La luz se enciende solo cuando el frasco ya cargó, para que no aparezca una silueta vacía.
+  const figura = document.querySelector('.hero__frasco');
+  const foto = figura?.querySelector('img');
+  const encender = () => figura?.classList.add('hero__frasco--listo');
+  if (foto?.complete) encender();
+  else foto?.addEventListener('load', encender, { once: true });
+
+  if (reducir) {
+    gsap.set(pasos, { opacity: 1, y: 0 });
+  } else {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Entrada por pasos: etiqueta → logo → lema → botón → dato, y el frasco sube con la luz.
+    gsap.fromTo(
+      pasos,
+      { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.09, delay: 0.1 },
+    );
+
+    // La hora dorada: la franja de luz cruza el frasco mientras bajas.
+    gsap.fromTo(
+      '.hero__franja',
+      { xPercent: -160 },
+      {
+        xPercent: 160,
+        ease: 'none',
+        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 },
+      },
+    );
+    gsap.to('.hero__luz-fondo', {
+      xPercent: 18,
+      opacity: 0.55,
+      ease: 'none',
+      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 },
+    });
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding-block: var(--e-9) var(--e-8);
+    isolation: isolate;
+  }
+
+  /* Luz cálida lateral, como el sol de la tarde que entra por la izquierda. */
+  .hero__luz-fondo {
+    position: absolute;
+    inset: -20% -10% -20% 30%;
+    background: radial-gradient(closest-side, rgba(201, 165, 92, 0.16), transparent 70%);
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .hero__grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: var(--e-7);
+  }
+
+  .hero__texto { max-width: 36rem; }
+
+  .hero__marca { margin: var(--e-5) 0 var(--e-6); line-height: 0; }
+  .hero__logo :global(svg) { width: min(100%, 560px); height: auto; }
+
+  .hero__lema {
+    font-family: var(--serif);
+    font-size: var(--t-h3);
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--blanco);
+    margin: 0 0 var(--e-6);
+    max-width: 28ch;
+  }
+
+  .hero__acciones { display: flex; flex-wrap: wrap; gap: var(--e-3); }
+
+  .hero__dato { margin: var(--e-5) 0 0; font-size: var(--t-chico); color: var(--texto-2); letter-spacing: 0.04em; }
+
+  .hero__frasco {
+    position: relative;
+    margin: 0;
+    justify-self: center;
+    width: min(100%, 420px);
+    padding-bottom: var(--e-8);
+  }
+
+  .hero__frasco img {
+    position: relative;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 30px 30px rgba(0, 0, 0, 0.6));
+  }
+
+  /* Base donde descansa el frasco, iluminada solo del lado de la luz. */
+  .hero__base {
+    position: absolute;
+    left: -12%;
+    right: -12%;
+    bottom: calc(var(--e-8) - 26px);
+    height: 52px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(201, 165, 92, 0.28), rgba(201, 165, 92, 0.05) 60%, transparent 75%);
+  }
+
+  /* Capa de brillo recortada con la silueta del frasco. */
+  .hero__brillo {
+    position: absolute;
+    inset: 0 0 var(--e-8) 0;
+    -webkit-mask: var(--mascara) center / contain no-repeat;
+    mask: var(--mascara) center / contain no-repeat;
+    overflow: hidden;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease-salida);
+  }
+  .hero__frasco--listo .hero__brillo { opacity: 1; }
+  .hero__franja {
+    position: absolute;
+    top: -10%;
+    bottom: -10%;
+    left: 10%;
+    width: 80%;
+    background: linear-gradient(100deg, transparent 18%, rgba(230, 203, 130, 0.35) 38%, rgba(255, 240, 200, 0.9) 50%, rgba(230, 203, 130, 0.35) 62%, transparent 82%);
+    transform: translateX(-160%);
+  }
+
+  .hero__pie {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--e-1);
+  }
+  .hero__pie-nombre { font-family: var(--serif); font-size: 1.25rem; color: var(--blanco); }
+
+  .hero__paso { opacity: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__paso { opacity: 1; }
+    .hero__franja { transform: translateX(0); opacity: 0.6; }
+  }
+
+  @media (max-width: 767px) {
+    .hero { padding-block: var(--e-8) var(--e-7); align-items: flex-start; }
+    .hero__grid { grid-template-columns: 1fr; gap: var(--e-6); }
+    .hero__frasco { order: -1; width: min(44vw, 200px); max-height: 40svh; padding-bottom: var(--e-7); }
+    .hero__brillo { bottom: var(--e-7); }
+    .hero__base { bottom: calc(var(--e-7) - 22px); height: 44px; }
+    .hero__marca { margin: var(--e-4) 0 var(--e-5); }
+    .hero__acciones .boton { width: 100%; }
+  }
+</style>
