@@ -1,0 +1,398 @@
+---
+// Pedido del cliente: cantidades, entrega, forma de pago y total en Bs a tasa euro BCV.
+// No hay servidor: el pedido sale armado hacia el WhatsApp de Goldhour cuando el cliente lo envía.
+import { WHATSAPP } from '../data/perfumes';
+
+const entregas = ['Delivery en Caracas', 'Envío nacional (MRW, Zoom o Tealca)'];
+const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efectivo en $'];
+---
+
+<dialog class="pedido" id="pedido" aria-labelledby="pedido-titulo" data-whatsapp={WHATSAPP}>
+  <div class="pedido__caja">
+    <header class="pedido__cabeza">
+      <h2 id="pedido-titulo" class="pedido__titulo">Tu pedido</h2>
+      <button type="button" class="pedido__cerrar" data-cerrar-pedido>Cerrar</button>
+    </header>
+
+    <div class="pedido__vacio" data-pedido-vacio>
+      <p>Tu pedido está vacío.</p>
+      <p class="pedido__ayuda">Agrega un frasco de la vitrina o un decant para probar.</p>
+      <a class="boton boton--secundario" href="#vitrina" data-cerrar-pedido>Ver la vitrina</a>
+    </div>
+
+    <div class="pedido__contenido" data-pedido-contenido hidden>
+      <ul class="pedido__lineas" data-pedido-lineas role="list"></ul>
+
+      <p class="pedido__subtotal">
+        <span>Subtotal</span>
+        <span data-pedido-subtotal>$0</span>
+      </p>
+
+      <form class="pedido__form" data-pedido-form novalidate>
+        <label class="campo">
+          <span class="etiqueta">Tu nombre</span>
+          <input name="nombre" type="text" autocomplete="name" maxlength="60" required placeholder="Tu nombre" />
+        </label>
+
+        <fieldset class="campo">
+          <legend class="etiqueta">Entrega</legend>
+          <div class="opciones">
+            {entregas.map((e, i) => (
+              <label class="opcion"><input type="radio" name="entrega" value={e} checked={i === 0} /><span>{e}</span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <label class="campo">
+          <span class="etiqueta">Zona o ciudad</span>
+          <input name="zona" type="text" autocomplete="address-level2" maxlength="80" required placeholder="Ej.: Chacao, Caracas" />
+        </label>
+
+        <fieldset class="campo">
+          <legend class="etiqueta">Forma de pago</legend>
+          <div class="opciones">
+            {pagos.map((p, i) => (
+              <label class="opcion"><input type="radio" name="pago" value={p} checked={i === 0} /><span>{p}</span></label>
+            ))}
+          </div>
+        </fieldset>
+
+        <p class="pedido__error" data-pedido-error role="alert" hidden></p>
+
+        <button type="submit" class="boton boton--principal pedido__pagar">Ver total a pagar</button>
+      </form>
+
+      <section class="pedido__total" data-pedido-total hidden aria-live="polite">
+        <p class="etiqueta">Total a pagar</p>
+        <p class="pedido__usd" data-total-usd></p>
+        <p class="pedido__bs" data-total-bs></p>
+        <p class="pedido__tasa" data-total-tasa></p>
+        <p class="pedido__nota">El costo del envío te lo confirmamos por WhatsApp antes de pagar.</p>
+        <a class="boton boton--principal pedido__enviar" data-enviar-pedido href="#" target="_blank" rel="noopener">
+          Enviar por WhatsApp
+        </a>
+        <button type="button" class="pedido__volver" data-volver-pedido>Cambiar algo del pedido</button>
+      </section>
+    </div>
+  </div>
+</dialog>
+
+<!-- En el teléfono, una barra fija abajo recuerda el pedido cuando ya hay perfumes. -->
+<button type="button" class="barra-pedido" data-abrir-pedido hidden>
+  <span>Ver pedido (<span data-cuenta-pedido>0</span>)</span>
+  <span data-barra-total>$0</span>
+</button>
+
+<script>
+  import { pedido } from '../scripts/pedido';
+  import { obtenerTasaEuro, formatoBs, formatoUsd, TasaNoDisponible } from '../scripts/tasa';
+
+  const panel = document.querySelector<HTMLDialogElement>('#pedido')!;
+  const $ = <T extends Element>(sel: string) => {
+    const el = panel.querySelector<T>(sel);
+    if (!el) throw new Error(`Falta ${sel} en el panel del pedido`);
+    return el;
+  };
+  const lista = $<HTMLUListElement>('[data-pedido-lineas]');
+  const vacio = $<HTMLElement>('[data-pedido-vacio]');
+  const contenido = $<HTMLElement>('[data-pedido-contenido]');
+  const subtotal = $<HTMLElement>('[data-pedido-subtotal]');
+  const form = $<HTMLFormElement>('[data-pedido-form]');
+  const error = $<HTMLElement>('[data-pedido-error]');
+  const bloqueTotal = $<HTMLElement>('[data-pedido-total]');
+  const enviar = $<HTMLAnchorElement>('[data-enviar-pedido]');
+  const barra = document.querySelector<HTMLButtonElement>('.barra-pedido')!;
+
+  function abrir() {
+    pintar();
+    if (!panel.open) panel.showModal();
+  }
+  function cerrar() {
+    panel.close();
+  }
+
+  // Botón "Pedido" del menú, barra del teléfono y enlaces #pedido.
+  document.addEventListener('click', (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest('[data-abrir-pedido], a[href="#pedido"]')) {
+      e.preventDefault();
+      abrir();
+    } else if (t.closest('[data-cerrar-pedido]')) {
+      cerrar();
+    } else if (t === panel) {
+      cerrar();
+    }
+  });
+
+  // Cada línea se arma con textContent (nunca HTML), aunque los datos vengan del navegador del cliente.
+  function linea(l: ReturnType<typeof pedido.lineas>[number]) {
+    const li = document.createElement('li');
+    li.className = 'pedido__linea';
+
+    const info = document.createElement('div');
+    const nombre = document.createElement('p');
+    nombre.className = 'pedido__nombre';
+    nombre.textContent = l.nombre;
+    const detalle = document.createElement('p');
+    detalle.className = 'pedido__detalle';
+    detalle.textContent = `${l.casa} · ${l.tamano} · ${formatoUsd(l.precio)} c/u`;
+    info.append(nombre, detalle);
+
+    const cantidad = document.createElement('div');
+    cantidad.className = 'pedido__cantidad';
+    const menos = document.createElement('button');
+    menos.type = 'button';
+    menos.textContent = '−';
+    menos.setAttribute('aria-label', `Quitar uno de ${l.nombre} ${l.tamano}`);
+    menos.addEventListener('click', () => pedido.cambiarCantidad(l.clave, l.cantidad - 1));
+    const numero = document.createElement('span');
+    numero.textContent = String(l.cantidad);
+    const mas = document.createElement('button');
+    mas.type = 'button';
+    mas.textContent = '+';
+    mas.setAttribute('aria-label', `Agregar otro ${l.nombre} ${l.tamano}`);
+    mas.disabled = l.cantidad >= 20;
+    mas.addEventListener('click', () => pedido.cambiarCantidad(l.clave, l.cantidad + 1));
+    cantidad.append(menos, numero, mas);
+
+    const monto = document.createElement('p');
+    monto.className = 'pedido__monto';
+    monto.textContent = formatoUsd(l.precio * l.cantidad);
+
+    li.append(info, cantidad, monto);
+    return li;
+  }
+
+  function pintar() {
+    const lineas = pedido.lineas();
+    const hay = lineas.length > 0;
+    vacio.hidden = hay;
+    contenido.hidden = !hay;
+    lista.replaceChildren(...lineas.map(linea));
+    subtotal.textContent = formatoUsd(pedido.totalUsd());
+    barra.hidden = !hay;
+    barra.querySelector('[data-barra-total]')!.textContent = formatoUsd(pedido.totalUsd());
+    // Si cambia el pedido, el total en Bs ya mostrado deja de valer: se vuelve al formulario.
+    mostrarTotal(false);
+  }
+
+  function mostrarTotal(ver: boolean) {
+    bloqueTotal.hidden = !ver;
+    form.hidden = ver;
+  }
+
+  function datosDelFormulario() {
+    const datos = new FormData(form);
+    const nombre = String(datos.get('nombre') ?? '').trim();
+    const zona = String(datos.get('zona') ?? '').trim();
+    const faltan = [!nombre && 'tu nombre', !zona && 'tu zona o ciudad'].filter(Boolean);
+    if (faltan.length) return { error: `Falta ${faltan.join(' y ')}.` };
+    return {
+      nombre: nombre.slice(0, 60),
+      zona: zona.slice(0, 80),
+      entrega: String(datos.get('entrega')),
+      pago: String(datos.get('pago')),
+    };
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const datos = datosDelFormulario();
+    if ('error' in datos) {
+      error.textContent = datos.error ?? '';
+      error.hidden = false;
+      return;
+    }
+    error.hidden = true;
+
+    const totalUsd = pedido.totalUsd();
+    $<HTMLElement>('[data-total-usd]').textContent = formatoUsd(totalUsd);
+    const bs = $<HTMLElement>('[data-total-bs]');
+    const tasaTexto = $<HTMLElement>('[data-total-tasa]');
+    bs.textContent = 'Calculando el monto en bolívares…';
+    tasaTexto.textContent = '';
+    mostrarTotal(true);
+
+    let lineaBs = '';
+    try {
+      const tasa = await obtenerTasaEuro();
+      const montoBs = totalUsd * tasa.valor;
+      const dia = tasa.fecha.toLocaleDateString('es-VE', { day: 'numeric', month: 'long' });
+      bs.textContent = formatoBs(montoBs);
+      tasaTexto.textContent = `Calculado a tasa euro BCV del ${dia}: ${formatoBs(tasa.valor)} por cada $1.`;
+      lineaBs = `Total en Bs: ${formatoBs(montoBs)} (tasa euro BCV del ${dia}: ${formatoBs(tasa.valor)})`;
+    } catch (err) {
+      if (!(err instanceof TasaNoDisponible)) throw err;
+      console.warn(err);
+      bs.textContent = 'No pudimos cargar la tasa de hoy.';
+      tasaTexto.textContent = 'Te confirmamos el monto en bolívares por WhatsApp.';
+      lineaBs = 'Total en Bs: por confirmar (no cargó la tasa del día)';
+    }
+
+    const lineasTexto = pedido
+      .lineas()
+      .map((l) => `• ${l.cantidad} × ${l.nombre} (${l.casa}) · ${l.tamano} · ${formatoUsd(l.precio * l.cantidad)}`);
+    const mensaje = [
+      'Hola Goldhour, quiero hacer este pedido desde la web:',
+      '',
+      ...lineasTexto,
+      '',
+      `Total: ${formatoUsd(totalUsd)}`,
+      lineaBs,
+      '',
+      `Nombre: ${datos.nombre}`,
+      `Entrega: ${datos.entrega} · ${datos.zona}`,
+      `Pago: ${datos.pago}`,
+    ].join('\n');
+    enviar.href = `https://wa.me/${panel.dataset.whatsapp}?text=${encodeURIComponent(mensaje)}`;
+  });
+
+  $<HTMLButtonElement>('[data-volver-pedido]').addEventListener('click', () => mostrarTotal(false));
+
+  pedido.alCambiar(pintar);
+  pintar();
+</script>
+
+<style>
+  /* Panel lateral a la derecha (en el teléfono ocupa toda la pantalla). */
+  .pedido {
+    margin: 0 0 0 auto;
+    width: min(460px, 100vw);
+    max-width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 0;
+    border: 0;
+    border-left: 1px solid var(--linea);
+    background: var(--negro);
+    color: var(--texto);
+    overflow: auto;
+  }
+  .pedido::backdrop { background: rgba(0, 0, 0, 0.6); }
+  .pedido[open] { animation: pedido-entra 0.4s var(--ease-salida); }
+  @keyframes pedido-entra { from { transform: translateX(40px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .pedido[open] { animation: none; } }
+
+  .pedido__caja { padding: var(--e-5) var(--e-5) var(--e-7); display: grid; gap: var(--e-5); }
+  .pedido__cabeza { display: flex; align-items: center; justify-content: space-between; }
+  .pedido__titulo { margin: 0; font-family: var(--serif); font-size: var(--t-h3); font-weight: 500; color: var(--blanco); }
+  .pedido__cerrar,
+  .pedido__volver {
+    min-height: 44px;
+    padding: 0 var(--e-4);
+    background: none;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    color: var(--texto);
+    font: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .pedido__volver { border: 0; text-decoration: underline; text-underline-offset: 4px; padding: 0; justify-self: start; }
+
+  .pedido__vacio { display: grid; gap: var(--e-3); justify-items: start; padding-block: var(--e-6); }
+  .pedido__vacio[hidden],
+  .pedido__contenido[hidden] { display: none; }
+  .pedido__vacio p { margin: 0; }
+  .pedido__ayuda { color: var(--texto-2); }
+
+  .pedido__contenido { display: grid; gap: var(--e-5); }
+  .pedido__lineas { list-style: none; margin: 0; padding: 0; display: grid; }
+  :global(.pedido__linea) {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: var(--e-3);
+    padding-block: var(--e-4);
+    border-bottom: 1px solid var(--linea);
+  }
+  :global(.pedido__nombre) { margin: 0; font-family: var(--serif); font-size: 1.0625rem; color: var(--blanco); overflow-wrap: anywhere; }
+  :global(.pedido__detalle) { margin: 2px 0 0; font-size: 0.8125rem; color: var(--texto-2); }
+  :global(.pedido__cantidad) { display: inline-flex; align-items: center; gap: var(--e-2); }
+  :global(.pedido__cantidad button) {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: none;
+    color: var(--texto);
+    font-size: 1.125rem;
+    cursor: pointer;
+  }
+  :global(.pedido__cantidad button:disabled) { opacity: 0.4; cursor: not-allowed; }
+  :global(.pedido__cantidad span) { min-width: 1.5ch; text-align: center; }
+  :global(.pedido__monto) { margin: 0; font-family: var(--serif); color: var(--oro-claro); min-width: 4ch; text-align: right; }
+
+  .pedido__subtotal { margin: 0; display: flex; justify-content: space-between; font-size: 1.125rem; }
+  .pedido__subtotal span:last-child { font-family: var(--serif); color: var(--oro-claro); font-size: 1.375rem; }
+
+  .pedido__form { display: grid; gap: var(--e-5); }
+  .pedido__form[hidden] { display: none; }
+  .campo { display: grid; gap: var(--e-2); border: 0; margin: 0; padding: 0; }
+  .campo input[type='text'] {
+    min-height: 48px;
+    padding: 0 var(--e-4);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    background: var(--negro-2);
+    color: var(--blanco);
+    font: inherit;
+  }
+  .campo input[type='text']:focus { outline: 2px solid var(--oro); outline-offset: 1px; }
+  .opciones { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .opcion { position: relative; }
+  .opcion input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .opcion span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--e-4);
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    font-size: 0.875rem;
+    pointer-events: none;
+  }
+  .opcion:has(input:checked) span { background: var(--oro); border-color: var(--oro); color: var(--negro); }
+  .opcion:has(input:focus-visible) span { outline: 2px solid var(--oro); outline-offset: 3px; }
+
+  .pedido__error { margin: 0; color: #f0a28a; }
+  .pedido__pagar { width: 100%; }
+
+  .pedido__total { display: grid; gap: var(--e-2); padding: var(--e-5); border: 1px solid var(--linea); border-radius: var(--radio); background: var(--negro-2); }
+  .pedido__total[hidden] { display: none; }
+  .pedido__total p { margin: 0; }
+  .pedido__usd { font-family: var(--serif); font-size: 2.25rem; color: var(--blanco); line-height: 1.1; }
+  .pedido__bs { font-family: var(--serif); font-size: 1.5rem; color: var(--oro-claro); }
+  .pedido__tasa, .pedido__nota { font-size: 0.8125rem; color: var(--texto-2); }
+  .pedido__enviar { margin-top: var(--e-3); width: 100%; letter-spacing: 0.04em; }
+
+  .barra-pedido {
+    position: fixed;
+    left: var(--e-3);
+    right: var(--e-3);
+    bottom: var(--e-3);
+    z-index: 30;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 52px;
+    padding: 0 var(--e-5);
+    border: 0;
+    border-radius: var(--radio);
+    background: var(--oro);
+    color: var(--negro);
+    font: inherit;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+  .barra-pedido[hidden] { display: none; }
+  @media (min-width: 768px) { .barra-pedido { display: none; } }
+  /* Que la barra no tape el final de la página en el teléfono. */
+  @media (max-width: 767px) { :global(body:has(.barra-pedido:not([hidden]))) { padding-bottom: 76px; } }
+</style>

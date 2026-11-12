@@ -4,12 +4,10 @@ import Encabezado from '../components/Encabezado.astro';
 import Hero from '../components/Hero.astro';
 import Vitrina from '../components/Vitrina.astro';
 import Decants from '../components/Decants.astro';
+import Pedido from '../components/Pedido.astro';
 
 // Temporal: estas secciones se construyen en los próximos pasos.
-const pendientes = [
-  { id: 'como-comprar', texto: 'Aquí va cómo comprar' },
-  { id: 'pedido', texto: 'Aquí va el pedido' },
-];
+const pendientes = [{ id: 'como-comprar', texto: 'Aquí va cómo comprar' }];
 ---
 
 <Base
@@ -27,4 +25,5 @@ const pendientes = [
       </section>
     ))}
   </main>
+  <Pedido />
 </Base>
