@@ -7,8 +7,10 @@ import { fotoDe } from '../data/fotos';
 
 interface Props {
   perfume: Perfume;
+  // La ficha toma el color de la sección de donde se abre: negra en la vitrina, marfil en los decants.
+  tema?: 'negro' | 'marfil';
 }
-const { perfume } = Astro.props;
+const { perfume, tema = 'negro' } = Astro.props;
 const { ficha } = perfume;
 const piramide = [
   { nombre: 'Salida', notas: ficha.salida },
@@ -17,7 +19,7 @@ const piramide = [
 ];
 ---
 
-<dialog class="ficha" id={`ficha-${perfume.id}`} aria-labelledby={`ficha-${perfume.id}-titulo`}>
+<dialog class={`ficha ficha--${tema}`} id={`ficha-${perfume.id}`} aria-labelledby={`ficha-${perfume.id}-titulo`}>
   <div class="ficha__caja">
     <button type="button" class="ficha__cerrar" data-cerrar-ficha aria-label="Cerrar la ficha">Cerrar</button>
 
@@ -61,10 +63,23 @@ const piramide = [
     padding: 0;
     border: 1px solid var(--linea);
     border-radius: var(--radio);
-    background: var(--negro);
+    --fondo-ficha: var(--negro);
+    background: var(--fondo-ficha);
     color: var(--texto);
     overflow: auto;
   }
+  /* Versión marfil: se redefinen los colores solo dentro de la ficha, todo lo demás se adapta solo. */
+  .ficha--marfil {
+    --fondo-ficha: var(--marfil);
+    --blanco: var(--tinta);
+    --texto: #3a3530;
+    --texto-2: #6b645b;
+    --oro: var(--oro-oscuro);
+    --linea: rgba(27, 27, 27, 0.16);
+  }
+  .ficha--marfil::backdrop { background: rgba(27, 22, 15, 0.55); }
+  .ficha--marfil .ficha__foto { background: radial-gradient(closest-side at 50% 80%, rgba(138, 102, 36, 0.18), transparent 70%); }
+  .ficha--marfil .ficha__foto img { filter: drop-shadow(0 20px 18px rgba(0, 0, 0, 0.28)); }
   .ficha::backdrop { background: rgba(0, 0, 0, 0.75); }
   .ficha[open] { animation: ficha-entra 0.35s var(--ease-salida); }
   @keyframes ficha-entra { from { opacity: 0; transform: translateY(12px); } }
