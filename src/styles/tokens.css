@@ -8,7 +8,7 @@
   --linea: rgba(201, 165, 92, 0.22);
   --oro: #c9a55c;
   --oro-claro: #e6cb82;
-  --oro-oscuro: #8a6624; /* etiquetas en oro sobre marfil, para que se lean */
+  --oro-oscuro: #7a5a1e; /* etiquetas en oro sobre marfil: contraste 5:1 para que se lean bien */
   --oro-lamina: linear-gradient(180deg, #a98234 0%, #e6cb82 30%, #f7e6ae 46%, #d9b565 58%, #a57d2f 80%, #8a6624 100%);
   --marfil: #f2ece1;
   --blanco: #ffffff;

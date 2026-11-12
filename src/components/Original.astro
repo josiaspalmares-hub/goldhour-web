@@ -43,7 +43,7 @@ const promesas = ['Perfumes 100% originales y sellados', 'Fotos y video de tu pe
   </div>
 
   <div class="contenedor">
-  <ol class="original__lista" role="list">
+  <ol class="original__lista" role="list" tabindex="0" aria-label="Las cinco señales; desliza para verlas todas">
     {senales.map((s, i) => (
       <li class="senal">
         <span class="senal__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
@@ -87,6 +87,7 @@ const promesas = ['Perfumes 100% originales y sellados', 'Fotos y video de tu pe
     scrollbar-width: thin;
     scrollbar-color: var(--linea) transparent;
   }
+  .original__lista:focus-visible { outline: 2px solid var(--oro); outline-offset: 6px; }
   .senal {
     scroll-snap-align: start;
     display: flex;

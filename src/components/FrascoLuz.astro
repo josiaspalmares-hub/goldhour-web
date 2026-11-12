@@ -13,8 +13,9 @@ interface Props {
 }
 const { foto, alt, ancho, sizes, principal = false, clase = '' } = Astro.props;
 
-const grande = await getImage({ src: foto, width: ancho, format: 'webp' });
-const chica = await getImage({ src: foto, width: Math.round(ancho * 0.6), format: 'webp' });
+// Calidad 72: a la vista no cambia y la foto de la portada pesa un 13 % menos (369 KB en vez de 427 KB).
+const grande = await getImage({ src: foto, width: ancho, format: 'webp', quality: 72 });
+const chica = await getImage({ src: foto, width: Math.round(ancho * 0.6), format: 'webp', quality: 72 });
 ---
 
 <div class={`frasco-luz ${clase}`} style={`--mascara: url(${grande.src})`}>

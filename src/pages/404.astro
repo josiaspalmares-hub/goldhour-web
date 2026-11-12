@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+import Pie from '../components/Pie.astro';
+import logoNombre from '../assets/marca/logo-nombre-oro.svg';
+import { WHATSAPP } from '../data/perfumes';
+---
+
+<Base titulo="Página no encontrada · Goldhour" descripcion="Esta página no existe. Vuelve a la tienda de Goldhour.">
+  <main class="no-encontrada contenedor">
+    <img src={logoNombre.src} width="320" height={Math.round((320 * logoNombre.height) / logoNombre.width)} alt="Goldhour" />
+    <p class="etiqueta">Error 404</p>
+    <h1>Este frasco no está en la vitrina</h1>
+    <p>La página que buscas no existe o cambió de lugar.</p>
+    <div class="no-encontrada__acciones">
+      <a class="boton boton--principal" href="/">Volver a la tienda</a>
+      <a class="boton boton--secundario" href={`https://wa.me/${WHATSAPP}`} target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+    </div>
+  </main>
+  <Pie base="/" />
+</Base>
+
+<style>
+  .no-encontrada { min-height: 70svh; display: grid; place-content: center; justify-items: center; text-align: center; gap: var(--e-4); padding-block: var(--e-9); }
+  .no-encontrada img { width: min(320px, 70vw); height: auto; margin-bottom: var(--e-5); }
+  .no-encontrada h1 { margin: 0; font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.1; max-width: 16ch; }
+  .no-encontrada p { margin: 0; color: var(--texto-2); }
+  .no-encontrada__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-3); margin-top: var(--e-4); }
+</style>
