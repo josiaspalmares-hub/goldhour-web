@@ -1,0 +1,69 @@
+// Comportamiento compartido de la tienda: abrir fichas, agregar al pedido y el contador del menú.
+import { pedido } from './pedido';
+
+const fichaPorId = (id: string) => document.querySelector<HTMLDialogElement>(`#ficha-${CSS.escape(id)}`);
+
+function abrirFicha(id: string) {
+  const ficha = fichaPorId(id);
+  if (ficha && !ficha.open) ficha.showModal();
+}
+
+// Botones "Ver ficha" y foto de cada perfume.
+document.addEventListener('click', (e) => {
+  const objetivo = e.target as HTMLElement;
+
+  const abrir = objetivo.closest<HTMLElement>('[data-abrir-ficha]');
+  if (abrir?.dataset.abrirFicha) {
+    e.preventDefault();
+    abrirFicha(abrir.dataset.abrirFicha);
+    return;
+  }
+
+  if (objetivo.closest('[data-cerrar-ficha]')) {
+    objetivo.closest('dialog')?.close();
+    return;
+  }
+
+  // Tocar fuera de la caja cierra la ficha.
+  if (objetivo instanceof HTMLDialogElement && objetivo.open) objetivo.close();
+
+  const agregar = objetivo.closest<HTMLButtonElement>('[data-agregar]');
+  if (agregar) agregarDesde(agregar);
+});
+
+// Los enlaces #id (por ejemplo, "Ver ficha" de la portada) abren la ficha de ese perfume.
+function abrirDesdeHash() {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (id && fichaPorId(id)) abrirFicha(id);
+}
+window.addEventListener('hashchange', abrirDesdeHash);
+abrirDesdeHash();
+
+function agregarDesde(boton: HTMLButtonElement) {
+  const { id, nombre, casa } = boton.dataset;
+  // El tamaño sale del selector de la tarjeta (decants) o del propio botón (frascos).
+  const selector = boton.closest('[data-producto]')?.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+  const tamano = selector?.value ?? boton.dataset.tamano;
+  const precio = Number(selector?.dataset.precio ?? boton.dataset.precio);
+  if (!id || !nombre || !casa || !tamano || !Number.isFinite(precio) || precio <= 0) {
+    throw new Error(`Botón de agregar sin datos completos (${id ?? 'sin id'})`);
+  }
+  pedido.agregar({ id, nombre, casa, tamano, precio });
+
+  const texto = boton.querySelector('[data-texto]') ?? boton;
+  const original = boton.dataset.textoOriginal ?? texto.textContent ?? '';
+  boton.dataset.textoOriginal = original;
+  texto.textContent = 'Agregado al pedido';
+  boton.classList.add('agregado');
+  window.setTimeout(() => {
+    texto.textContent = original;
+    boton.classList.remove('agregado');
+  }, 1600);
+}
+
+function pintarContador() {
+  const unidades = String(pedido.unidades());
+  document.querySelectorAll('[data-cuenta-pedido]').forEach((n) => (n.textContent = unidades));
+}
+pedido.alCambiar(pintarContador);
+pintarContador();

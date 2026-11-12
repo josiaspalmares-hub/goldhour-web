@@ -1,0 +1,187 @@
+---
+import { Image } from 'astro:assets';
+import Ficha from './Ficha.astro';
+import { frascos } from '../data/perfumes';
+import { fotoDe } from '../data/fotos';
+
+const filtros = [
+  { valor: 'todos', texto: 'Todos' },
+  { valor: 'Él', texto: 'Para él' },
+  { valor: 'Ella', texto: 'Para ella' },
+  { valor: 'Unisex', texto: 'Unisex' },
+];
+---
+
+<section id="vitrina" class="vitrina" aria-labelledby="vitrina-titulo">
+  <div class="contenedor">
+    <header class="vitrina__cabeza">
+      <div>
+        <p class="etiqueta">La vitrina</p>
+        <h2 id="vitrina-titulo" class="vitrina__titulo">{frascos.length} frascos originales y sellados</h2>
+      </div>
+      <div class="vitrina__filtros" role="group" aria-label="Filtrar por">
+        {filtros.map((f, i) => (
+          <button type="button" class="vitrina__filtro" data-filtro={f.valor} aria-pressed={i === 0 ? 'true' : 'false'}>{f.texto}</button>
+        ))}
+      </div>
+    </header>
+
+    <ul class="vitrina__lista" role="list">
+      {frascos.map((p) => {
+        const tamano = p.tamanos[0];
+        return (
+          <li class="tarjeta" id={p.id} data-para={p.para} data-producto>
+            <button type="button" class="tarjeta__foto" data-abrir-ficha={p.id} aria-label={`Ver la ficha de ${p.nombre}`}>
+              <Image src={fotoDe(p.id)} alt="" width={420} format="webp" loading="lazy" />
+            </button>
+            <p class="etiqueta tarjeta__casa">{p.casa}</p>
+            <h3 class="tarjeta__nombre">{p.nombre}</h3>
+            <p class="tarjeta__detalle">{p.concentracion} · {tamano.etiqueta}</p>
+            <p class="tarjeta__precio">${tamano.precio}</p>
+            <div class="tarjeta__acciones">
+              <button
+                type="button"
+                class="boton boton--principal"
+                data-agregar
+                data-id={p.id}
+                data-nombre={p.nombre}
+                data-casa={p.casa}
+                data-tamano={tamano.etiqueta}
+                data-precio={tamano.precio}
+              ><span data-texto>Agregar</span></button>
+              <button type="button" class="boton boton--secundario" data-abrir-ficha={p.id}>Ver ficha</button>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
+    <p class="vitrina__vacio" hidden>No hay perfumes en este filtro por ahora. Escríbenos y te buscamos uno.</p>
+  </div>
+
+  {frascos.map((p) => (
+    <Ficha perfume={p}>
+      <div class="ficha-comprar">
+        <span class="ficha-comprar__precio">${p.tamanos[0].precio}</span>
+        <button
+          type="button"
+          class="boton boton--principal"
+          data-agregar
+          data-id={p.id}
+          data-nombre={p.nombre}
+          data-casa={p.casa}
+          data-tamano={p.tamanos[0].etiqueta}
+          data-precio={p.tamanos[0].precio}
+        ><span data-texto>Agregar al pedido</span></button>
+      </div>
+    </Ficha>
+  ))}
+</section>
+
+<script>
+  import '../scripts/tienda';
+
+  // Filtros: muestran solo los perfumes para él, para ella o unisex.
+  const botones = document.querySelectorAll<HTMLButtonElement>('.vitrina__filtro');
+  const tarjetas = document.querySelectorAll<HTMLElement>('.vitrina .tarjeta');
+  const vacio = document.querySelector<HTMLElement>('.vitrina__vacio');
+  botones.forEach((b) =>
+    b.addEventListener('click', () => {
+      botones.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      let visibles = 0;
+      tarjetas.forEach((t) => {
+        const ver = b.dataset.filtro === 'todos' || t.dataset.para === b.dataset.filtro;
+        t.hidden = !ver;
+        if (ver) visibles++;
+      });
+      if (vacio) vacio.hidden = visibles > 0;
+    }),
+  );
+</script>
+
+<style>
+  .vitrina { padding-block: var(--e-9); border-top: 1px solid var(--linea); scroll-margin-top: 72px; }
+
+  .vitrina__cabeza { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--e-5); margin-bottom: var(--e-7); }
+  .vitrina__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); margin: var(--e-3) 0 0; line-height: 1.05; max-width: 14ch; }
+
+  .vitrina__filtros { display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  .vitrina__filtro {
+    min-height: 44px;
+    padding: 0 var(--e-4);
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: none;
+    color: var(--texto);
+    font: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+  }
+  .vitrina__filtro:hover { border-color: var(--oro); }
+  .vitrina__filtro[aria-pressed='true'] { background: var(--oro); border-color: var(--oro); color: var(--negro); }
+
+  .vitrina__lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--e-7) var(--e-5);
+  }
+
+  .tarjeta { display: flex; flex-direction: column; }
+  .tarjeta[hidden] { display: none; }
+
+  /* Cada frasco sobre su base, con la luz cálida desde la izquierda. */
+  .tarjeta__foto {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    margin-bottom: var(--e-4);
+    border: 0;
+    border-radius: var(--radio);
+    background:
+      radial-gradient(60% 30% at 50% 92%, rgba(201, 165, 92, 0.2), transparent 70%),
+      linear-gradient(100deg, rgba(201, 165, 92, 0.07), transparent 55%),
+      var(--negro-2);
+    cursor: pointer;
+  }
+  /* Todos los frascos en un cuadro del mismo tamaño, apoyados abajo sobre la base. */
+  .tarjeta__foto img {
+    position: absolute;
+    inset: 14% 16% 9%;
+    width: 68%;
+    height: 77%;
+    object-fit: contain;
+    object-position: center bottom;
+    filter: drop-shadow(0 18px 16px rgba(0, 0, 0, 0.6));
+    transition: transform 0.4s var(--ease-salida);
+  }
+  .tarjeta__foto:hover img { transform: translateY(-4px); }
+  @media (prefers-reduced-motion: reduce) { .tarjeta__foto:hover img { transform: none; } }
+
+  .tarjeta__casa { margin: 0; }
+  .tarjeta__nombre { font-family: var(--serif); font-size: 1.375rem; font-weight: 500; color: var(--blanco); margin: var(--e-1) 0 var(--e-1); line-height: 1.2; }
+  .tarjeta__detalle { margin: 0; font-size: 0.875rem; color: var(--texto-2); }
+  .tarjeta__precio { margin: var(--e-2) 0 var(--e-4); font-family: var(--serif); font-size: 1.5rem; color: var(--oro-claro); }
+
+  .tarjeta__acciones { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-2); }
+  .tarjeta__acciones .boton { padding: 0 var(--e-3); font-size: 0.8125rem; }
+  :global(.boton.agregado) { background: var(--marfil); border-color: var(--marfil); color: var(--negro); }
+
+  .vitrina__vacio { color: var(--texto-2); }
+
+  .ficha-comprar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-4); }
+  .ficha-comprar__precio { font-family: var(--serif); font-size: 2rem; color: var(--oro-claro); }
+
+  @media (max-width: 767px) {
+    .vitrina { padding-block: var(--e-8); }
+    .vitrina__lista { grid-template-columns: 1fr 1fr; gap: var(--e-6) var(--e-3); }
+    .tarjeta__nombre { font-size: 1.0625rem; }
+    .tarjeta__detalle { font-size: 0.75rem; }
+    .tarjeta__precio { font-size: 1.25rem; }
+    .tarjeta__acciones { grid-template-columns: 1fr; }
+  }
+</style>

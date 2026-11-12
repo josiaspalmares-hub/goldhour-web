@@ -2,10 +2,10 @@
 import Base from '../layouts/Base.astro';
 import Encabezado from '../components/Encabezado.astro';
 import Hero from '../components/Hero.astro';
+import Vitrina from '../components/Vitrina.astro';
 
 // Temporal: estas secciones se construyen en los próximos pasos.
 const pendientes = [
-  { id: 'vitrina', texto: 'Aquí va la vitrina' },
   { id: 'decants', texto: 'Aquí van los decants' },
   { id: 'como-comprar', texto: 'Aquí va cómo comprar' },
   { id: 'pedido', texto: 'Aquí va el pedido' },
@@ -19,10 +19,10 @@ const pendientes = [
   <Encabezado />
   <main>
     <Hero />
+    <Vitrina />
     {pendientes.map((p) => (
-      <section id={p.id} style="min-height:60svh;display:grid;place-items:center;border-top:1px solid var(--linea);scroll-margin-top:72px">
+      <section id={p.id} style="min-height:40svh;display:grid;place-items:center;border-top:1px solid var(--linea);scroll-margin-top:72px">
         <p class="etiqueta">{p.texto}</p>
-        {p.id === 'vitrina' && <span id="khamrah-qahwa" />}
       </section>
     ))}
   </main>

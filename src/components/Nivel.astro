@@ -1,0 +1,25 @@
+---
+// Barra de 5 segmentos para duración y proyección, igual que en los posts.
+interface Props {
+  titulo: string;
+  valor: string;
+  nivel: number;
+}
+const { titulo, valor, nivel } = Astro.props;
+---
+
+<div class="nivel">
+  <span class="etiqueta">{titulo}</span>
+  <span class="nivel__valor">{valor}</span>
+  <span class="nivel__barra" role="img" aria-label={`${nivel} de 5`}>
+    {[1, 2, 3, 4, 5].map((i) => <span class={i <= nivel ? 'lleno' : ''} />)}
+  </span>
+</div>
+
+<style>
+  .nivel { display: grid; gap: var(--e-1); }
+  .nivel__valor { font-family: var(--serif); font-size: 1.25rem; color: var(--blanco); }
+  .nivel__barra { display: flex; gap: 4px; margin-top: var(--e-1); }
+  .nivel__barra span { width: 22px; height: 3px; background: rgba(201, 165, 92, 0.2); }
+  .nivel__barra span.lleno { background: var(--oro); }
+</style>

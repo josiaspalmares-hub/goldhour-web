@@ -1,0 +1,125 @@
+---
+// Ficha honesta de un perfume, en una ventana que se abre sobre la página.
+import { Image } from 'astro:assets';
+import Nivel from './Nivel.astro';
+import type { Perfume } from '../data/perfumes';
+import { fotoDe } from '../data/fotos';
+
+interface Props {
+  perfume: Perfume;
+}
+const { perfume } = Astro.props;
+const { ficha } = perfume;
+const piramide = [
+  { nombre: 'Salida', notas: ficha.salida },
+  { nombre: 'Corazón', notas: ficha.corazon },
+  { nombre: 'Fondo', notas: ficha.fondo },
+];
+---
+
+<dialog class="ficha" id={`ficha-${perfume.id}`} aria-labelledby={`ficha-${perfume.id}-titulo`}>
+  <div class="ficha__caja">
+    <button type="button" class="ficha__cerrar" data-cerrar-ficha aria-label="Cerrar la ficha">Cerrar</button>
+
+    <div class="ficha__foto">
+      <Image src={fotoDe(perfume.id)} alt={`Frasco de ${perfume.nombre}`} width={520} format="webp" loading="lazy" />
+    </div>
+
+    <div class="ficha__datos">
+      <p class="etiqueta">{perfume.casa} · {perfume.para}</p>
+      <h3 id={`ficha-${perfume.id}-titulo`} class="ficha__nombre">{perfume.nombre}</h3>
+      <p class="ficha__sub">{perfume.concentracion} · {ficha.familia}</p>
+      <p class="ficha__frase">{perfume.frase}</p>
+
+      <dl class="ficha__piramide">
+        {piramide.map((p) => (
+          <div>
+            <dt class="etiqueta">{p.nombre}</dt>
+            <dd>{p.notas.join(' · ')}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div class="ficha__niveles">
+        <Nivel titulo="Duración" valor={ficha.duracion} nivel={ficha.duracionNivel} />
+        <Nivel titulo="Proyección" valor={ficha.proyeccion} nivel={ficha.proyeccionNivel} />
+        <div class="ficha__ocasion">
+          <span class="etiqueta">Ocasión</span>
+          <span>{ficha.ocasion.join(' · ')}</span>
+        </div>
+      </div>
+
+      <slot />
+    </div>
+  </div>
+</dialog>
+
+<style>
+  .ficha {
+    width: min(920px, calc(100vw - 32px));
+    max-height: calc(100svh - 32px);
+    padding: 0;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    background: var(--negro);
+    color: var(--texto);
+    overflow: auto;
+  }
+  .ficha::backdrop { background: rgba(0, 0, 0, 0.75); }
+  .ficha[open] { animation: ficha-entra 0.35s var(--ease-salida); }
+  @keyframes ficha-entra { from { opacity: 0; transform: translateY(12px); } }
+  @media (prefers-reduced-motion: reduce) { .ficha[open] { animation: none; } }
+
+  .ficha__caja {
+    position: relative;
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+    gap: var(--e-6);
+    padding: var(--e-7);
+  }
+
+  .ficha__cerrar {
+    position: absolute;
+    top: var(--e-3);
+    right: var(--e-3);
+    min-height: 44px;
+    padding: 0 var(--e-4);
+    background: none;
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    color: var(--texto);
+    font: inherit;
+    font-size: 0.8125rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .ficha__cerrar:hover { border-color: var(--oro); }
+
+  .ficha__foto {
+    display: grid;
+    place-items: end center;
+    background: radial-gradient(closest-side at 50% 80%, rgba(201, 165, 92, 0.18), transparent 70%);
+  }
+  .ficha__foto img { max-height: 420px; width: auto; object-fit: contain; filter: drop-shadow(0 24px 24px rgba(0, 0, 0, 0.6)); }
+
+  .ficha__nombre { font-family: var(--serif); font-size: var(--t-h3); font-weight: 500; color: var(--blanco); margin: var(--e-2) 0 var(--e-1); line-height: 1.15; }
+  .ficha__sub { margin: 0; color: var(--texto-2); font-size: 0.9375rem; }
+  .ficha__frase { margin: var(--e-4) 0 var(--e-5); font-family: var(--serif); font-size: 1.125rem; color: var(--texto); }
+
+  .ficha__piramide { margin: 0 0 var(--e-5); display: grid; gap: var(--e-3); padding-block: var(--e-4); border-block: 1px solid var(--linea); }
+  .ficha__piramide div { display: grid; grid-template-columns: 100px 1fr; gap: var(--e-3); align-items: baseline; }
+  .ficha__piramide dd { margin: 0; color: var(--blanco); }
+
+  .ficha__niveles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-5); margin-bottom: var(--e-6); }
+  .ficha__ocasion { display: grid; gap: var(--e-1); align-content: start; }
+  .ficha__ocasion span:last-child { font-family: var(--serif); color: var(--blanco); line-height: 1.35; }
+
+  @media (max-width: 767px) {
+    .ficha__caja { grid-template-columns: 1fr; padding: var(--e-7) var(--e-5) var(--e-5); gap: var(--e-4); }
+    .ficha__foto img { max-height: 220px; }
+    .ficha__niveles { grid-template-columns: 1fr 1fr; }
+    .ficha__ocasion { grid-column: 1 / -1; }
+    .ficha__piramide div { grid-template-columns: 80px 1fr; }
+  }
+</style>
