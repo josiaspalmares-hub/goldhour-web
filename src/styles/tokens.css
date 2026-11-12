@@ -106,6 +106,9 @@ a { color: inherit; }
 .boton--principal:hover { background: var(--oro-claro); border-color: var(--oro-claro); }
 .boton--oscuro { background: var(--tinta); color: var(--marfil); border: 1px solid var(--tinta); }
 .boton--oscuro:hover { background: #000; border-color: #000; }
+/* Confirmación breve al agregar al pedido (en cualquier sección). */
+.boton.boton.agregado { background: var(--marfil); border-color: var(--oro); color: var(--negro); }
+.decants .boton.boton.agregado { background: var(--oro); border-color: var(--oro); color: var(--negro); }
 .boton--secundario { background: transparent; color: var(--texto); border: 1px solid var(--linea); }
 .boton--secundario:hover { border-color: var(--oro); color: var(--blanco); }
 
