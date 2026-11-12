@@ -6,9 +6,15 @@ import goodGirl from '../assets/perfumes/good-girl.png';
 import FrascoLuz from './FrascoLuz.astro';
 import { frascos, WHATSAPP } from '../data/perfumes';
 
-const protagonista = frascos.find((p) => p.id === 'khamrah-qahwa');
-if (!protagonista) throw new Error('Falta Khamrah Qahwa en src/data/perfumes.ts');
-const precio = protagonista.tamanos[0].precio;
+// Los tres frascos de la vitrina de la portada, en el orden izquierda · frente · derecha.
+const fotos = { 'le-male-le-parfum': leParfum, 'khamrah-qahwa': khamrah, 'good-girl': goodGirl };
+const posiciones = ['izq', 'frente', 'der'] as const;
+const escena = (Object.keys(fotos) as (keyof typeof fotos)[]).map((id, i) => {
+  const perfume = frascos.find((p) => p.id === id);
+  if (!perfume) throw new Error(`Falta ${id} en src/data/perfumes.ts`);
+  return { perfume, foto: fotos[id], posicion: posiciones[i] };
+});
+const protagonista = escena[1].perfume;
 
 const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero información de un perfume.');
 const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvil, Zelle, Binance o efectivo', 'Delivery en Caracas'];
@@ -34,16 +40,32 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     </div>
 
     <div class="hero__escena hero__paso">
-      <FrascoLuz foto={leParfum} alt="Frasco de Le Male Le Parfum de Jean Paul Gaultier" ancho={520} sizes="(max-width: 767px) 30vw, 16vw" clase="hero__frasco hero__frasco--izq" />
-      <FrascoLuz foto={goodGirl} alt="Frasco de Good Girl de Carolina Herrera" ancho={520} sizes="(max-width: 767px) 30vw, 16vw" clase="hero__frasco hero__frasco--der" />
-      <FrascoLuz foto={khamrah} alt="Frasco de Khamrah Qahwa de Lattafa" ancho={900} sizes="(max-width: 767px) 46vw, 28vw" principal clase="hero__frasco hero__frasco--frente" />
+      {escena.map(({ perfume, foto, posicion }) => (
+        <button
+          type="button"
+          class={`hero__frasco hero__frasco--${posicion}`}
+          data-id={perfume.id}
+          data-casa={perfume.casa}
+          data-nombre={perfume.nombre}
+          data-precio={perfume.tamanos[0].precio}
+          aria-label={`Poner ${perfume.nombre} al frente`}
+        >
+          <FrascoLuz
+            foto={foto}
+            alt={`Frasco de ${perfume.nombre} de ${perfume.casa}`}
+            ancho={900}
+            sizes="(max-width: 767px) 46vw, 28vw"
+            principal={posicion === 'frente'}
+          />
+        </button>
+      ))}
       <div class="hero__base" aria-hidden="true"></div>
 
-      <a class="hero__precio" href={`#${protagonista.id}`}>
+      <a class="hero__precio" href={`#${protagonista.id}`} aria-live="polite">
         <span class="hero__precio-linea" aria-hidden="true"></span>
-        <span class="etiqueta">{protagonista.casa}</span>
-        <span class="hero__precio-nombre">{protagonista.nombre}</span>
-        <span class="hero__precio-monto">${precio}</span>
+        <span class="etiqueta" data-precio-casa>{protagonista.casa}</span>
+        <span class="hero__precio-nombre" data-precio-nombre>{protagonista.nombre}</span>
+        <span class="hero__precio-monto" data-precio-monto>${protagonista.tamanos[0].precio}</span>
         <span class="hero__precio-ver">Ver ficha</span>
       </a>
     </div>
@@ -57,9 +79,58 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
 <script>
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
+  import { Flip } from 'gsap/Flip';
 
   const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pasos = document.querySelectorAll('.hero__paso');
+
+  // Tocar un frasco de atrás lo pasa al frente; tocar el del frente lleva a su ficha.
+  gsap.registerPlugin(Flip);
+  const frascosEscena = [...document.querySelectorAll<HTMLButtonElement>('.hero__frasco')];
+  const etiqueta = document.querySelector<HTMLAnchorElement>('.hero__precio');
+  const campo = (nombre: string) => etiqueta?.querySelector<HTMLElement>(`[data-precio-${nombre}]`);
+
+  const actualizarEtiqueta = (frasco: HTMLButtonElement) => {
+    const { id, casa, nombre, precio } = frasco.dataset;
+    if (!etiqueta || !id || !casa || !nombre || !precio) {
+      throw new Error('Frasco de la portada sin datos completos');
+    }
+    etiqueta.href = `#${id}`;
+    campo('casa')!.textContent = casa;
+    campo('nombre')!.textContent = nombre;
+    campo('monto')!.textContent = `$${precio}`;
+  };
+
+  const marcarBotones = () => {
+    frascosEscena.forEach((f) => {
+      const alFrente = f.classList.contains('hero__frasco--frente');
+      f.setAttribute('aria-label', alFrente ? `Ver la ficha de ${f.dataset.nombre}` : `Poner ${f.dataset.nombre} al frente`);
+    });
+  };
+  marcarBotones();
+
+  frascosEscena.forEach((frasco) => {
+    frasco.addEventListener('click', () => {
+      if (frasco.classList.contains('hero__frasco--frente')) {
+        if (etiqueta) location.hash = etiqueta.hash;
+        return;
+      }
+      const frente = frascosEscena.find((f) => f.classList.contains('hero__frasco--frente'));
+      if (!frente) return;
+      const lado = frasco.classList.contains('hero__frasco--izq') ? 'izq' : 'der';
+      const estado = Flip.getState(frascosEscena);
+
+      frasco.classList.replace(`hero__frasco--${lado}`, 'hero__frasco--frente');
+      frente.classList.replace('hero__frasco--frente', `hero__frasco--${lado}`);
+      actualizarEtiqueta(frasco);
+      marcarBotones();
+
+      if (!reducir) {
+        Flip.from(estado, { duration: 0.75, ease: 'power3.inOut', absolute: true });
+        gsap.fromTo(etiqueta, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.35 });
+      }
+    });
+  });
 
   if (reducir) {
     gsap.set(pasos, { opacity: 1, y: 0 });
@@ -81,19 +152,14 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     if (escena && window.matchMedia('(pointer: fine)').matches) {
       const moverX = gsap.quickTo('.hero__luz-fondo', 'x', { duration: 0.8, ease: 'power3.out' });
       const moverY = gsap.quickTo('.hero__luz-fondo', 'y', { duration: 0.8, ease: 'power3.out' });
-      const inclinar = gsap.quickTo('.hero__frasco--frente', 'rotationY', { duration: 0.8, ease: 'power3.out' });
       escena.addEventListener('pointermove', (e) => {
         const caja = escena.getBoundingClientRect();
-        const dx = (e.clientX - caja.left) / caja.width - 0.5;
-        const dy = (e.clientY - caja.top) / caja.height - 0.5;
-        moverX(dx * 120);
-        moverY(dy * 80);
-        inclinar(dx * 6);
+        moverX(((e.clientX - caja.left) / caja.width - 0.5) * 120);
+        moverY(((e.clientY - caja.top) / caja.height - 0.5) * 80);
       });
       escena.addEventListener('pointerleave', () => {
         moverX(0);
         moverY(0);
-        inclinar(0);
       });
     }
   }
@@ -155,20 +221,34 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   .hero__escena :global(.hero__frasco) {
     position: absolute;
     bottom: 14%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    transition: filter 0.5s var(--ease-salida);
   }
+  .hero__escena :global(.hero__frasco:focus-visible) { outline: 2px solid var(--oro); outline-offset: 6px; }
   .hero__escena :global(.hero__frasco--frente) {
-    left: 50%;
-    width: 52%;
-    translate: -50% 0;
+    /* Espacio fijo (no translate) para que la animación de cambio no lo descoloque. */
+    left: 22%;
+    width: 56%;
+    height: 68%;
     z-index: 3;
     filter: drop-shadow(0 30px 30px rgba(0, 0, 0, 0.6));
   }
   .hero__escena :global(.hero__frasco--izq),
   .hero__escena :global(.hero__frasco--der) {
     width: 28%;
+    height: 42%;
     bottom: 22%;
-    filter: blur(1.5px) brightness(0.55);
+    filter: blur(0.6px) brightness(0.78) drop-shadow(0 18px 18px rgba(0, 0, 0, 0.5));
     z-index: 1;
+  }
+  .hero__escena :global(.hero__frasco--izq:hover),
+  .hero__escena :global(.hero__frasco--der:hover),
+  .hero__escena :global(.hero__frasco--izq:focus-visible),
+  .hero__escena :global(.hero__frasco--der:focus-visible) {
+    filter: blur(0) brightness(1) drop-shadow(0 18px 18px rgba(0, 0, 0, 0.5));
   }
   .hero__escena :global(.hero__frasco--izq) { left: 4%; }
   .hero__escena :global(.hero__frasco--der) { right: 4%; }
@@ -187,8 +267,8 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   /* Etiqueta de precio que señala al frasco protagonista. */
   .hero__precio {
     position: absolute;
-    right: -2%;
-    bottom: 34%;
+    right: -4%;
+    bottom: 2%;
     z-index: 4;
     display: grid;
     gap: 2px;
@@ -246,9 +326,9 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     .hero { padding-block: 76px 0; }
     .hero__grid { grid-template-columns: 1fr; gap: var(--e-4); }
     .hero__escena { order: -1; width: min(100%, 340px); aspect-ratio: 1 / 0.82; }
-    .hero__escena :global(.hero__frasco--frente) { width: 40%; }
+    .hero__escena :global(.hero__frasco--frente) { width: 44%; left: 28%; height: 72%; }
     .hero__escena :global(.hero__frasco--izq),
-    .hero__escena :global(.hero__frasco--der) { width: 22%; }
+    .hero__escena :global(.hero__frasco--der) { width: 24%; height: 44%; }
     /* En el teléfono la etiqueta va en una línea debajo de los frascos para no taparlos. */
     .hero__precio {
       right: auto;
@@ -262,7 +342,8 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
       min-width: 0;
       padding: var(--e-2) var(--e-3);
     }
-    .hero__precio-linea { display: none; }
+    .hero__precio-linea,
+    .hero__precio .etiqueta { display: none; }
     .hero__precio-nombre { font-size: 0.9375rem; }
     .hero__precio-monto { font-size: 1.0625rem; }
     .hero__marca { margin: var(--e-3) 0 var(--e-4); }
