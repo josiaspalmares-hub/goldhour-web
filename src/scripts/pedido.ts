@@ -9,6 +9,8 @@ export interface Linea {
   tamano: string;
   precio: number;
   cantidad: number;
+  // Decants: los tamaños que se pueden elegir, para cambiarlo desde el pedido.
+  opciones?: { tamano: string; precio: number }[];
 }
 
 const LLAVE = 'goldhour-pedido';
@@ -55,6 +57,23 @@ export const pedido = {
     const existente = lineas.find((l) => l.clave === clave);
     if (existente) existente.cantidad += 1;
     else lineas.push({ ...linea, clave, cantidad: 1 });
+    guardar();
+  },
+
+  // Cambiar el tamaño de una línea (por ejemplo de 5 ml a frasco). Si ya había una línea con ese
+  // tamaño del mismo perfume, se juntan en una sola.
+  cambiarTamano(clave: string, tamano: string) {
+    const linea = lineas.find((l) => l.clave === clave);
+    const opcion = linea?.opciones?.find((o) => o.tamano === tamano);
+    if (!linea || !opcion) throw new Error(`No se puede cambiar ${clave} a ${tamano}`);
+    const nuevaClave = `${linea.id}:${tamano}`;
+    const otra = lineas.find((l) => l.clave === nuevaClave && l !== linea);
+    if (otra) {
+      otra.cantidad = Math.min(otra.cantidad + linea.cantidad, 20);
+      lineas = lineas.filter((l) => l !== linea);
+    } else {
+      Object.assign(linea, { clave: nuevaClave, tamano, precio: opcion.precio });
+    }
     guardar();
   },
 

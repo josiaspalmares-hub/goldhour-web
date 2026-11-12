@@ -160,6 +160,23 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
     monto.textContent = formatoUsd(l.precio * l.cantidad);
 
     li.append(info, cantidad, monto);
+
+    // Decants: elegir otro tamaño aquí mismo, sin borrar y volver a agregar.
+    if (l.opciones && l.opciones.length > 1) {
+      const tamanos = document.createElement('div');
+      tamanos.className = 'pedido__tamanos';
+      tamanos.setAttribute('role', 'group');
+      tamanos.setAttribute('aria-label', `Tamaño de ${l.nombre}`);
+      for (const o of l.opciones) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = `${o.tamano} · ${formatoUsd(o.precio)}`;
+        b.setAttribute('aria-pressed', String(o.tamano === l.tamano));
+        if (o.tamano !== l.tamano) b.addEventListener('click', () => pedido.cambiarTamano(l.clave, o.tamano));
+        tamanos.append(b);
+      }
+      li.append(tamanos);
+    }
     return li;
   }
 
@@ -217,10 +234,9 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
     try {
       const tasa = await obtenerTasaEuro();
       const montoBs = totalUsd * tasa.valor;
-      const dia = tasa.fecha.toLocaleDateString('es-VE', { day: 'numeric', month: 'long' });
       bs.textContent = formatoBs(montoBs);
-      tasaTexto.textContent = `Calculado a tasa euro BCV del ${dia}: ${formatoBs(tasa.valor)} por cada $1.`;
-      lineaBs = `Total en Bs: ${formatoBs(montoBs)} (tasa euro BCV del ${dia}: ${formatoBs(tasa.valor)})`;
+      tasaTexto.textContent = `Tasa euro del día: ${formatoBs(tasa.valor)}`;
+      lineaBs = `Total en Bs: ${formatoBs(montoBs)} (tasa euro del día: ${formatoBs(tasa.valor)})`;
     } catch (err) {
       if (!(err instanceof TasaNoDisponible)) throw err;
       console.warn(err);
@@ -323,6 +339,20 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
   }
   :global(.pedido__cantidad button:disabled) { opacity: 0.4; cursor: not-allowed; }
   :global(.pedido__cantidad span) { min-width: 1.5ch; text-align: center; }
+  :global(.pedido__tamanos) { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--e-2); }
+  :global(.pedido__tamanos button) {
+    min-height: 36px;
+    padding: 0 var(--e-3);
+    border: 1px solid var(--linea);
+    border-radius: 999px;
+    background: none;
+    color: var(--texto);
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+  :global(.pedido__tamanos button:hover) { border-color: var(--oro); }
+  :global(.pedido__tamanos button[aria-pressed='true']) { background: var(--oro); border-color: var(--oro); color: var(--negro); cursor: default; }
   :global(.pedido__monto) { margin: 0; font-family: var(--serif); color: var(--oro-claro); min-width: 4ch; text-align: right; }
 
   .pedido__subtotal { margin: 0; display: flex; justify-content: space-between; font-size: 1.125rem; }

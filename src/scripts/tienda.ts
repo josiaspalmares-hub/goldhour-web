@@ -42,13 +42,15 @@ abrirDesdeHash();
 function agregarDesde(boton: HTMLButtonElement) {
   const { id, nombre, casa } = boton.dataset;
   // El tamaño sale del selector de la tarjeta (decants) o del propio botón (frascos).
-  const selector = boton.closest('[data-producto]')?.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+  const radios = [...(boton.closest('[data-producto]')?.querySelectorAll<HTMLInputElement>('input[type="radio"]') ?? [])];
+  const selector = radios.find((r) => r.checked);
   const tamano = selector?.value ?? boton.dataset.tamano;
   const precio = Number(selector?.dataset.precio ?? boton.dataset.precio);
   if (!id || !nombre || !casa || !tamano || !Number.isFinite(precio) || precio <= 0) {
     throw new Error(`Botón de agregar sin datos completos (${id ?? 'sin id'})`);
   }
-  pedido.agregar({ id, nombre, casa, tamano, precio });
+  const opciones = radios.length > 1 ? radios.map((r) => ({ tamano: r.value, precio: Number(r.dataset.precio) })) : undefined;
+  pedido.agregar({ id, nombre, casa, tamano, precio, opciones });
 
   const texto = boton.querySelector('[data-texto]') ?? boton;
   const original = boton.dataset.textoOriginal ?? texto.textContent ?? '';
