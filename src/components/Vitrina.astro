@@ -183,5 +183,18 @@ const filtros = [
     .tarjeta__detalle { font-size: 0.75rem; }
     .tarjeta__precio { font-size: 1.25rem; }
     .tarjeta__acciones { grid-template-columns: 1fr; }
+
+    /* En el teléfono el precio y el botón de comprar quedan fijos abajo de la ficha. */
+    .ficha-comprar {
+      position: sticky;
+      bottom: 0;
+      margin: 0 calc(var(--e-5) * -1) calc(var(--e-5) * -1);
+      padding: var(--e-3) var(--e-5);
+      background: var(--negro);
+      border-top: 1px solid var(--linea);
+      flex-wrap: nowrap;
+      justify-content: space-between;
+    }
+    .ficha-comprar__precio { font-size: 1.5rem; }
   }
 </style>

@@ -45,8 +45,8 @@ en todo, sin glass en todas las tarjetas (máximo 1 elemento: la barra del pedid
 
 - Escala de espacios: 4 · 8 · 12 · 16 · 24 · 32 · 48 · 72 · 112 · 160 px. Las secciones varían el ritmo:
   la portada y la vitrina respiran (112–160), cómo comprar y preguntas van más juntas (48–72).
-- Radios: 2 px en botones y tarjetas (corte de joyería, nada de píldoras). 999 px solo en los botones de
-  cantidad (5 ml / 10 ml / frasco).
+- Radios: 2 px en botones y tarjetas (corte de joyería, nada de píldoras). 999 px solo en los controles de
+  elegir: filtros de la vitrina y tamaños (5 ml / 10 ml / frasco).
 - Sombras: solo la sombra de contacto bajo cada frasco sobre su base.
 
 ## Componentes
