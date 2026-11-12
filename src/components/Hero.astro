@@ -151,19 +151,19 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     });
 
     if (!reducir) {
-      // Cada frasco gira un poco sobre sí mismo mientras cambia de puesto, como en una vitrina giratoria.
+      // Recorrido en arco, sin inclinar el frasco: los de delante suben un poco al pasar
+      // y el que cruza por detrás se apaga y se hunde, como en una vitrina giratoria.
       movimientos.forEach(({ f, de, a }) => {
         const interior = f.querySelector('.frasco-luz');
         const porDetras = (de === 'izq' && a === 'der') || (de === 'der' && a === 'izq');
-        const sentido = hacia === 'der' ? -1 : 1;
         gsap.fromTo(
           interior,
-          { rotationY: 0, opacity: 1, y: 0, transformPerspective: 700 },
+          { opacity: 1, y: 0 },
           {
             keyframes: porDetras
-              ? [{ rotationY: 40 * sentido, opacity: 0.25, y: -14, duration: duracion / 2 }, { rotationY: 0, opacity: 1, y: 0, duration: duracion / 2 }]
-              : [{ rotationY: 22 * sentido, y: -10, duration: duracion / 2 }, { rotationY: 0, y: 0, duration: duracion / 2 }],
-            ease: 'power1.inOut',
+              ? [{ opacity: 0.2, y: 12, duration: duracion / 2 }, { opacity: 1, y: 0, duration: duracion / 2 }]
+              : [{ y: -10, duration: duracion / 2 }, { y: 0, duration: duracion / 2 }],
+            ease: 'sine.inOut',
           },
         );
       });
@@ -312,8 +312,10 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   }
   .hero__escena :global(.hero__frasco--izq),
   .hero__escena :global(.hero__frasco--der) {
+    /* Misma proporción que el puesto del frente (56 × 68 a la mitad), para que al girar
+       el frasco solo cambie de tamaño y nunca se estire ni se aplaste. */
     width: 28%;
-    height: 42%;
+    height: 34%;
     bottom: 22%;
     filter: blur(0.6px) brightness(0.78) drop-shadow(0 18px 18px rgba(0, 0, 0, 0.5));
     z-index: 1;
@@ -402,7 +404,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     .hero__escena { order: -1; width: min(100%, 340px); aspect-ratio: 1 / 0.82; }
     .hero__escena :global(.hero__frasco--frente) { width: 44%; left: 28%; height: 72%; }
     .hero__escena :global(.hero__frasco--izq),
-    .hero__escena :global(.hero__frasco--der) { width: 24%; height: 44%; }
+    .hero__escena :global(.hero__frasco--der) { width: 24%; height: 39.27%; }
     /* En el teléfono la etiqueta va en una línea debajo de los frascos para no taparlos. */
     .hero__precio {
       right: auto;
