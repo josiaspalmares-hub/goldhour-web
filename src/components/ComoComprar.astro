@@ -1,0 +1,69 @@
+---
+// Cómo comprar: el proceso real de Goldhour, en el orden en que pasa.
+import { WHATSAPP } from '../data/perfumes';
+
+const pasos = [
+  { titulo: 'Arma tu pedido', texto: 'Agrega frascos o decants aquí en la web, o escríbenos y te ayudamos a elegir.' },
+  { titulo: 'Te confirmamos por WhatsApp', texto: 'Revisamos disponibilidad, te pasamos fotos o video del perfume y el costo del envío.' },
+  { titulo: 'Pagas como prefieras', texto: 'Pago móvil, transferencia en Bs, Zelle, Binance o efectivo en dólares. En Bs, a tasa euro del día.' },
+  { titulo: 'Lo recibes', texto: 'Delivery en Caracas o envío a todo el país por MRW, Zoom o Tealca.' },
+];
+const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero ayuda para elegir un perfume.');
+---
+
+<section id="como-comprar" class="comprar" aria-labelledby="comprar-titulo">
+  <div class="contenedor comprar__grid">
+    <div class="comprar__cabeza">
+      <p class="etiqueta">Cómo comprar</p>
+      <h2 id="comprar-titulo" class="comprar__titulo">De la vitrina a tus manos</h2>
+      <a class="boton boton--principal" href={`https://wa.me/${WHATSAPP}?text=${mensaje}`} target="_blank" rel="noopener">Escríbenos por WhatsApp</a>
+      <p class="comprar__telefono">0412-610-95-80</p>
+    </div>
+
+    <ol class="comprar__pasos" role="list">
+      {pasos.map((p, i) => (
+        <li class="paso">
+          <span class="paso__numero" aria-hidden="true">{i + 1}</span>
+          <div>
+            <h3 class="paso__titulo">{p.titulo}</h3>
+            <p class="paso__texto">{p.texto}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>
+
+<style>
+  .comprar { padding-block: var(--e-9); border-top: 1px solid var(--linea); scroll-margin-top: 72px; }
+  .comprar__grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: var(--e-8); align-items: start; }
+  .comprar__cabeza { position: sticky; top: 104px; display: grid; justify-items: start; gap: var(--e-4); }
+  .comprar__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: 0; max-width: 11ch; }
+  .comprar__telefono { margin: 0; font-family: var(--serif); font-size: 1.25rem; color: var(--oro-claro); }
+
+  .comprar__pasos { list-style: none; margin: 0; padding: 0; display: grid; }
+  .paso { display: grid; grid-template-columns: 56px 1fr; gap: var(--e-5); padding-block: var(--e-6); border-bottom: 1px solid var(--linea); }
+  .paso:first-child { padding-top: 0; }
+  .paso__numero {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border: 1px solid var(--oro);
+    border-radius: 999px;
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--oro-claro);
+  }
+  .paso__titulo { margin: var(--e-2) 0 var(--e-2); font-family: var(--serif); font-size: 1.5rem; font-weight: 500; color: var(--blanco); }
+  .paso__texto { margin: 0; color: var(--texto-2); max-width: 34rem; }
+
+  @media (max-width: 767px) {
+    .comprar { padding-block: var(--e-8); }
+    .comprar__grid { grid-template-columns: 1fr; gap: var(--e-6); }
+    .comprar__cabeza { position: static; }
+    .paso { grid-template-columns: 44px 1fr; gap: var(--e-4); padding-block: var(--e-5); }
+    .paso__numero { width: 44px; height: 44px; font-size: 1.25rem; }
+    .paso__titulo { font-size: 1.25rem; margin-top: var(--e-1); }
+  }
+</style>

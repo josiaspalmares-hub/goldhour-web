@@ -1,0 +1,39 @@
+---
+// Páginas de texto (privacidad, cambios): misma marca, lectura cómoda.
+import Base from './Base.astro';
+import Pie from '../components/Pie.astro';
+import monograma from '../assets/marca/monograma-G-recorte.svg';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  actualizado: string;
+}
+const { titulo, descripcion, actualizado } = Astro.props;
+---
+
+<Base titulo={`${titulo} · Goldhour`} descripcion={descripcion}>
+  <header class="legal__menu contenedor">
+    <a href="/" aria-label="Volver a la tienda de Goldhour"><img src={monograma.src} width="32" height="34" alt="" /></a>
+    <a class="legal__volver" href="/">Volver a la tienda</a>
+  </header>
+  <main class="legal contenedor">
+    <p class="etiqueta">Goldhour</p>
+    <h1>{titulo}</h1>
+    <p class="legal__fecha">Última actualización: {actualizado}</p>
+    <slot />
+  </main>
+  <Pie base="/" />
+</Base>
+
+<style>
+  .legal__menu { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .legal__volver { font-size: 0.875rem; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; padding-block: var(--e-3); }
+  .legal { max-width: 46rem; padding-block: var(--e-8) var(--e-9); }
+  .legal h1 { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) 0 var(--e-2); }
+  .legal__fecha { color: var(--texto-2); font-size: 0.875rem; margin: 0 0 var(--e-7); }
+  .legal :global(h2) { font-family: var(--serif); font-size: 1.5rem; font-weight: 500; color: var(--blanco); margin: var(--e-7) 0 var(--e-3); }
+  .legal :global(p), .legal :global(li) { color: var(--texto); }
+  .legal :global(ul) { padding-left: 1.2em; }
+  .legal :global(a) { color: var(--oro-claro); }
+</style>

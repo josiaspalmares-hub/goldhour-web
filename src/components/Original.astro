@@ -1,0 +1,137 @@
+---
+// "¿Tu perfume es original?": las 5 señales del carrusel de Instagram, como texto real.
+const senales = [
+  {
+    titulo: 'El celofán',
+    texto: 'El plástico va ajustado a la caja, transparente y con pliegues limpios y parejos.',
+    si: 'sellado firme, sin arrugas ni burbujas.',
+    no: 'plástico flojo, opaco o con pegamento visible.',
+  },
+  {
+    titulo: 'El código de lote',
+    texto: 'Busca el código impreso debajo de la caja y el que viene en la base del frasco.',
+    si: 'los dos códigos son iguales.',
+    no: 'no tiene código, está borrado o no coinciden.',
+  },
+  {
+    titulo: 'La caja',
+    texto: 'Mira el cartón y la impresión: las marcas cuidan cada detalle.',
+    si: 'cartón firme, letras nítidas y bien alineadas.',
+    no: 'colores apagados, errores de ortografía o letras borrosas.',
+  },
+  {
+    titulo: 'El frasco y el atomizador',
+    texto: 'Revisa el vidrio, el logo y cómo sale el perfume.',
+    si: 'vidrio limpio, logo bien hecho y una bruma fina y pareja.',
+    no: 'burbujas en el vidrio, tapa floja o chorro en vez de bruma.',
+  },
+  {
+    titulo: 'El precio y el vendedor',
+    texto: 'Si es demasiado barato para ser verdad, casi nunca lo es.',
+    si: 'precio de mercado y un vendedor que te muestra fotos y video reales.',
+    no: 'ofertas muy por debajo y fotos sacadas de internet.',
+  },
+];
+const promesas = ['Perfumes 100% originales y sellados', 'Fotos y video de tu perfume antes de pagar', 'Te asesoramos con honestidad'];
+---
+
+<section id="original" class="original" aria-labelledby="original-titulo">
+  <div class="contenedor original__cabeza">
+    <p class="etiqueta">Guía Goldhour</p>
+    <h2 id="original-titulo" class="original__titulo">¿Tu perfume es original?</h2>
+    <p class="original__texto">Cinco señales para revisar antes de pagar, aquí o en cualquier tienda.</p>
+  </div>
+
+  <div class="contenedor">
+  <ol class="original__lista" role="list">
+    {senales.map((s, i) => (
+      <li class="senal">
+        <span class="senal__numero" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+        <h3 class="senal__titulo">{s.titulo}</h3>
+        <p class="senal__texto">{s.texto}</p>
+        <p class="senal__marca senal__marca--si">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+          <span><strong>Original:</strong> {s.si}</span>
+        </p>
+        <p class="senal__marca senal__marca--no">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+          <span><strong>Desconfía:</strong> {s.no}</span>
+        </p>
+      </li>
+    ))}
+  </ol>
+    <ul class="original__promesas" aria-label="En Goldhour" role="list">
+      {promesas.map((p) => <li>{p}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .original { padding-block: var(--e-9); border-top: 1px solid var(--linea); overflow: hidden; scroll-margin-top: 72px; }
+  .original__cabeza { margin-bottom: var(--e-7); }
+  .original__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) 0 var(--e-4); }
+  .original__texto { margin: 0; color: var(--texto-2); max-width: 34rem; }
+
+  /* Fila que se desliza de lado, como el carrusel de Instagram: arranca alineada con el texto
+     y se extiende hasta el borde derecho de la pantalla. */
+  .original__lista {
+    list-style: none;
+    margin: 0 calc(50% - 50vw) 0 0;
+    padding: 0 var(--margen) var(--e-3) 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(280px, 340px);
+    gap: var(--e-4);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--linea) transparent;
+  }
+  .senal {
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    gap: var(--e-3);
+    padding: var(--e-6) var(--e-5);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    background: var(--negro-2);
+  }
+  .senal__numero {
+    font-family: var(--serif);
+    font-size: 4rem;
+    line-height: 1;
+    background: var(--oro-lamina);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .senal__titulo { margin: var(--e-2) 0 0; font-family: var(--serif); font-size: 1.5rem; font-weight: 500; color: var(--blanco); line-height: 1.15; }
+  .senal__texto { margin: 0 0 var(--e-2); font-size: 0.9375rem; }
+  .senal__marca { margin: 0; display: grid; grid-template-columns: 16px 1fr; gap: var(--e-2); font-size: 0.875rem; color: var(--texto-2); }
+  .senal__marca svg { width: 16px; height: 16px; margin-top: 3px; }
+  .senal__marca strong { color: var(--texto); font-weight: 500; }
+  .senal__marca--si svg { color: var(--oro); }
+  .senal__marca--no svg { color: #b97b6a; }
+
+  .original__promesas {
+    list-style: none;
+    margin: var(--e-7) 0 0;
+    padding: var(--e-5) 0 0;
+    border-top: 1px solid var(--linea);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-3) var(--e-7);
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    color: var(--blanco);
+  }
+  .original__promesas li { display: flex; align-items: center; gap: var(--e-3); }
+  .original__promesas li::before { content: ''; width: 6px; height: 6px; background: var(--oro); rotate: 45deg; }
+
+  @media (max-width: 767px) {
+    .original { padding-block: var(--e-8); }
+    .original__lista { grid-auto-columns: 82%; }
+    .original__promesas { flex-direction: column; font-size: 1rem; }
+  }
+</style>

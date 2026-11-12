@@ -1,0 +1,98 @@
+---
+// Preguntas frecuentes: lo que más preguntan por WhatsApp, respondido con lo que Goldhour hace de verdad.
+const preguntas = [
+  {
+    p: '¿Los perfumes son originales?',
+    r: 'Sí. Todos son 100% originales y sellados. Antes de pagar te mandamos fotos o video de tu perfume para que veas el celofán, la caja y el código de lote.',
+  },
+  {
+    p: '¿Qué es un decant?',
+    r: 'Es el mismo perfume original, pasado del frasco a un atomizador de vidrio de 5 ml o 10 ml. Sirve para probarlo varios días antes de comprar el frasco completo, o para llevarlo en el bolso.',
+  },
+  {
+    p: '¿Cuánto me dura un decant de 5 ml?',
+    r: 'Unas 50 aplicaciones. Si usas 3 o 4 por día, te dura entre dos y tres semanas.',
+  },
+  {
+    p: '¿Hacen envíos fuera de Caracas?',
+    r: 'Sí, a todo el país por MRW, Zoom o Tealca. En Caracas hacemos delivery. El costo te lo confirmamos por WhatsApp según tu zona.',
+  },
+  {
+    p: '¿En qué moneda pago?',
+    r: 'Los precios están en dólares. Puedes pagar en dólares (Zelle, Binance o efectivo) o en bolívares por pago móvil o transferencia, a tasa euro del día.',
+  },
+  {
+    p: '¿Me ayudan a elegir?',
+    r: 'Claro. Cuéntanos si es para ti o para regalo y qué olores te gustan (dulces, frescos, amaderados) y te recomendamos dos o tres opciones con su ficha.',
+  },
+  {
+    p: '¿Puedo cambiar o devolver un perfume?',
+    r: 'Como son perfumes sellados, el cambio aplica si llega dañado, con el sello abierto o no es el que pediste. Avísanos el mismo día que lo recibes. Los detalles están en la política de cambios.',
+  },
+];
+---
+
+<section id="preguntas" class="preguntas" aria-labelledby="preguntas-titulo">
+  <div class="contenedor preguntas__grid">
+    <div>
+      <p class="etiqueta">Preguntas frecuentes</p>
+      <h2 id="preguntas-titulo" class="preguntas__titulo">Lo que más nos preguntan</h2>
+    </div>
+    <div class="preguntas__lista">
+      {preguntas.map((q) => (
+        <details class="pregunta">
+          <summary>{q.p}</summary>
+          <p>{q.r}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json" set:html={JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: preguntas.map((q) => ({ '@type': 'Question', name: q.p, acceptedAnswer: { '@type': 'Answer', text: q.r } })),
+})} />
+
+<style>
+  .preguntas { padding-block: var(--e-9); border-top: 1px solid var(--linea); scroll-margin-top: 72px; }
+  .preguntas__grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: var(--e-8); align-items: start; }
+  .preguntas__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) 0 0; max-width: 11ch; }
+
+  .pregunta { border-bottom: 1px solid var(--linea); }
+  .pregunta summary {
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--e-4);
+    min-height: 64px;
+    padding-block: var(--e-4);
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    color: var(--blanco);
+    cursor: pointer;
+  }
+  .pregunta summary::-webkit-details-marker { display: none; }
+  .pregunta summary::after {
+    content: '';
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-right: 1.5px solid var(--oro);
+    border-bottom: 1.5px solid var(--oro);
+    rotate: 45deg;
+    translate: 0 -3px;
+    transition: rotate 0.25s var(--ease-salida);
+  }
+  .pregunta[open] summary::after { rotate: 225deg; translate: 0 3px; }
+  .pregunta summary:focus-visible { outline: 2px solid var(--oro); outline-offset: 4px; }
+  .pregunta p { margin: 0 0 var(--e-5); color: var(--texto-2); max-width: 38rem; }
+
+  @media (max-width: 767px) {
+    .preguntas { padding-block: var(--e-8); }
+    .preguntas__grid { grid-template-columns: 1fr; gap: var(--e-5); }
+    .pregunta summary { font-size: 1.0625rem; }
+  }
+</style>

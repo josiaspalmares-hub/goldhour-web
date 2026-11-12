@@ -4,26 +4,67 @@ import Encabezado from '../components/Encabezado.astro';
 import Hero from '../components/Hero.astro';
 import Vitrina from '../components/Vitrina.astro';
 import Decants from '../components/Decants.astro';
+import Original from '../components/Original.astro';
+import ComoComprar from '../components/ComoComprar.astro';
+import Preguntas from '../components/Preguntas.astro';
+import Pie from '../components/Pie.astro';
 import Pedido from '../components/Pedido.astro';
+import { frascos, decants, WHATSAPP, INSTAGRAM } from '../data/perfumes';
 
-// Temporal: estas secciones se construyen en los próximos pasos.
-const pendientes = [{ id: 'como-comprar', texto: 'Aquí va cómo comprar' }];
+const sitio = Astro.site?.href.replace(/\/$/, '') ?? '';
+// Datos para Google y para los asistentes de IA: la tienda y cada perfume con su precio en dólares.
+const datosTienda = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  name: 'Goldhour · Maison de Parfums',
+  description: 'Perfumes originales y sellados en Caracas, y decants de 5 y 10 ml.',
+  url: sitio,
+  telephone: `+${WHATSAPP}`,
+  areaServed: 'Venezuela',
+  address: { '@type': 'PostalAddress', addressLocality: 'Caracas', addressCountry: 'VE' },
+  currenciesAccepted: 'USD, VES',
+  paymentAccepted: 'Pago móvil, transferencia, Zelle, Binance, efectivo',
+  sameAs: [`https://www.instagram.com/${INSTAGRAM}/`, 'https://www.facebook.com/p/Gold-Hour-61595622513241/'],
+};
+const datosProductos = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  itemListElement: [...frascos, ...decants].map((p, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Product',
+      name: `${p.casa} ${p.nombre}`,
+      brand: { '@type': 'Brand', name: p.casa },
+      description: p.frase,
+      url: `${sitio}/#${p.id}`,
+      offers: p.tamanos.map((t) => ({
+        '@type': 'Offer',
+        name: t.etiqueta,
+        price: t.precio,
+        priceCurrency: 'USD',
+        availability: 'https://schema.org/InStock',
+      })),
+    },
+  })),
+};
 ---
 
 <Base
   titulo="Goldhour · Perfumes originales y decants en Caracas"
-  descripcion="Perfumes originales y sellados en Caracas: Lattafa, Lancôme, Carolina Herrera, Paco Rabanne, Valentino y más. Decants de 5 y 10 ml. Pedidos por WhatsApp."
+  descripcion="Perfumes originales y sellados en Caracas: Lattafa, Lancôme, Carolina Herrera, Paco Rabanne, Valentino, Jean Paul Gaultier y más. Decants de 5 y 10 ml. Pedidos por WhatsApp, pago en $ o Bs."
 >
   <Encabezado />
   <main>
     <Hero />
     <Vitrina />
     <Decants />
-    {pendientes.map((p) => (
-      <section id={p.id} style="min-height:40svh;display:grid;place-items:center;border-top:1px solid var(--linea);scroll-margin-top:72px">
-        <p class="etiqueta">{p.texto}</p>
-      </section>
-    ))}
+    <Original />
+    <ComoComprar />
+    <Preguntas />
   </main>
+  <Pie />
   <Pedido />
+  <script type="application/ld+json" set:html={JSON.stringify(datosTienda)} />
+  <script type="application/ld+json" set:html={JSON.stringify(datosProductos)} />
 </Base>
