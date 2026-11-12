@@ -81,7 +81,10 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
   import { Flip } from 'gsap/Flip';
 
-  const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // En modo prueba (solo en la PC, nunca publicado) ?movimiento fuerza las animaciones
+  // aunque Windows tenga apagados los efectos de animación.
+  const forzarMovimiento = import.meta.env.DEV && new URLSearchParams(location.search).has('movimiento');
+  const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !forzarMovimiento;
   const pasos = document.querySelectorAll('.hero__paso');
 
   // Tocar un frasco de atrás lo pasa al frente; tocar el del frente lleva a su ficha.
@@ -109,27 +112,96 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   };
   marcarBotones();
 
+  // La vitrina gira como una rueda: los tres frascos avanzan un puesto a la vez.
+  // Tocar el de la derecha: derecha → frente, frente → izquierda, izquierda → derecha (pasando por detrás).
+  type Puesto = 'izq' | 'frente' | 'der';
+  const puestoDe = (f: HTMLElement): Puesto =>
+    f.classList.contains('hero__frasco--frente') ? 'frente' : f.classList.contains('hero__frasco--izq') ? 'izq' : 'der';
+  const siguiente: Record<'der' | 'izq', Record<Puesto, Puesto>> = {
+    der: { der: 'frente', frente: 'izq', izq: 'der' },
+    izq: { izq: 'frente', frente: 'der', der: 'izq' },
+  };
+  let girando = false;
+
+  const girar = (hacia: 'der' | 'izq') => {
+    if (girando) return;
+    girando = true;
+    const estado = Flip.getState(frascosEscena);
+    const movimientos = frascosEscena.map((f) => ({ f, de: puestoDe(f), a: siguiente[hacia][puestoDe(f)] }));
+
+    movimientos.forEach(({ f, de, a }) => f.classList.replace(`hero__frasco--${de}`, `hero__frasco--${a}`));
+    const nuevoFrente = movimientos.find((m) => m.a === 'frente')!.f;
+    actualizarEtiqueta(nuevoFrente);
+    marcarBotones();
+
+    // scale: true mueve los frascos con transformaciones (la tarjeta gráfica) en vez de
+    // recalcular su tamaño en cada cuadro; la luz y el desenfoque se apagan mientras giran.
+    const duracion = reducir ? 0.4 : 0.95;
+    const escenaGiro = document.querySelector('.hero__escena');
+    escenaGiro?.classList.add('hero__escena--girando');
+    Flip.from(estado, {
+      duration: duracion,
+      ease: 'power2.inOut',
+      scale: true,
+      absolute: true,
+      onComplete: () => {
+        escenaGiro?.classList.remove('hero__escena--girando');
+        girando = false;
+      },
+    });
+
+    if (!reducir) {
+      // Cada frasco gira un poco sobre sí mismo mientras cambia de puesto, como en una vitrina giratoria.
+      movimientos.forEach(({ f, de, a }) => {
+        const interior = f.querySelector('.frasco-luz');
+        const porDetras = (de === 'izq' && a === 'der') || (de === 'der' && a === 'izq');
+        const sentido = hacia === 'der' ? -1 : 1;
+        gsap.fromTo(
+          interior,
+          { rotationY: 0, opacity: 1, y: 0, transformPerspective: 700 },
+          {
+            keyframes: porDetras
+              ? [{ rotationY: 40 * sentido, opacity: 0.25, y: -14, duration: duracion / 2 }, { rotationY: 0, opacity: 1, y: 0, duration: duracion / 2 }]
+              : [{ rotationY: 22 * sentido, y: -10, duration: duracion / 2 }, { rotationY: 0, y: 0, duration: duracion / 2 }],
+            ease: 'power1.inOut',
+          },
+        );
+      });
+    }
+    gsap.fromTo(etiqueta, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.35, delay: duracion * 0.55 });
+  };
+
+  let acabaDeDeslizar = false;
+
   frascosEscena.forEach((frasco) => {
     frasco.addEventListener('click', () => {
-      if (frasco.classList.contains('hero__frasco--frente')) {
+      // Un deslizamiento con el dedo no cuenta como toque.
+      if (acabaDeDeslizar) {
+        acabaDeDeslizar = false;
+        return;
+      }
+      const puesto = puestoDe(frasco);
+      if (puesto === 'frente') {
         if (etiqueta) location.hash = etiqueta.hash;
         return;
       }
-      const frente = frascosEscena.find((f) => f.classList.contains('hero__frasco--frente'));
-      if (!frente) return;
-      const lado = frasco.classList.contains('hero__frasco--izq') ? 'izq' : 'der';
-      const estado = Flip.getState(frascosEscena);
-
-      frasco.classList.replace(`hero__frasco--${lado}`, 'hero__frasco--frente');
-      frente.classList.replace('hero__frasco--frente', `hero__frasco--${lado}`);
-      actualizarEtiqueta(frasco);
-      marcarBotones();
-
-      if (!reducir) {
-        Flip.from(estado, { duration: 0.75, ease: 'power3.inOut', absolute: true });
-        gsap.fromTo(etiqueta, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.35 });
-      }
+      girar(puesto);
     });
+  });
+
+  // En el teléfono también se puede girar deslizando el dedo sobre los frascos.
+  const escenaToque = document.querySelector<HTMLElement>('.hero__escena');
+  let inicioX: number | null = null;
+  escenaToque?.addEventListener('touchstart', (e) => { inicioX = e.touches[0].clientX; }, { passive: true });
+  escenaToque?.addEventListener('touchend', (e) => {
+    if (inicioX === null) return;
+    const dx = e.changedTouches[0].clientX - inicioX;
+    inicioX = null;
+    if (Math.abs(dx) > 40) {
+      acabaDeDeslizar = true;
+      setTimeout(() => { acabaDeDeslizar = false; }, 400);
+      girar(dx < 0 ? 'der' : 'izq');
+    }
   });
 
   if (reducir) {
@@ -228,6 +300,8 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     transition: filter 0.5s var(--ease-salida);
   }
   .hero__escena :global(.hero__frasco:focus-visible) { outline: 2px solid var(--oro); outline-offset: 6px; }
+  .hero__escena--girando :global(.frasco-luz__brillo) { visibility: hidden; }
+  .hero__escena--girando :global(.hero__frasco) { filter: none !important; transition: none; will-change: transform; }
   .hero__escena :global(.hero__frasco--frente) {
     /* Espacio fijo (no translate) para que la animación de cambio no lo descoloque. */
     left: 22%;
