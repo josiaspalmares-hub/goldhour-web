@@ -2,7 +2,11 @@
 import Base from '../layouts/Base.astro';
 import Encabezado from '../components/Encabezado.astro';
 import Hero from '../components/Hero.astro';
+import Cargador from '../components/Cargador.astro';
+import Marcas from '../components/Marcas.astro';
+import Inmersion from '../components/Inmersion.astro';
 import Vitrina from '../components/Vitrina.astro';
+import Encuentra from '../components/Encuentra.astro';
 import Decants from '../components/Decants.astro';
 import Original from '../components/Original.astro';
 import ComoComprar from '../components/ComoComprar.astro';
@@ -54,10 +58,14 @@ const datosProductos = {
   titulo="Goldhour · Perfumes originales y decants en Caracas"
   descripcion="Perfumes originales y sellados en Caracas: Lattafa, Lancôme, Carolina Herrera, Paco Rabanne, Valentino, Jean Paul Gaultier y más. Decants de 5 y 10 ml. Pedidos por WhatsApp, pago en $ o Bs."
 >
+  <Cargador />
   <Encabezado />
   <main>
     <Hero />
+    <Marcas />
+    <Inmersion />
     <Vitrina />
+    <Encuentra />
     <Decants />
     <Original />
     <ComoComprar />

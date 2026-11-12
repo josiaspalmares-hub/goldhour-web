@@ -1,0 +1,55 @@
+---
+// Cinta con las casas que trabajamos; sale del catálogo, así que si se agrega una marca aparece sola.
+import { frascos, decants } from '../data/perfumes';
+
+const casas = [...new Set([...frascos, ...decants].map((p) => p.casa))].sort((a, b) => a.localeCompare(b, 'es'));
+---
+
+<section class="marcas" aria-label="Marcas que trabajamos">
+  <div class="marcas__pista">
+    <ul class="marcas__lista" role="list">
+      {casas.map((c) => <li>{c}</li>)}
+    </ul>
+    <!-- copia para que la cinta no tenga cortes; los lectores de pantalla la ignoran -->
+    <ul class="marcas__lista" role="list" aria-hidden="true">
+      {casas.map((c) => <li>{c}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .marcas {
+    overflow: hidden;
+    border-block: 1px solid var(--linea);
+    padding-block: var(--e-5);
+    /* los bordes se desvanecen en vez de cortar las palabras */
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .marcas__pista { display: flex; width: max-content; animation: marcas-corre 50s linear infinite; }
+  .marcas:hover .marcas__pista { animation-play-state: paused; }
+  .marcas__lista { display: flex; margin: 0; padding: 0; list-style: none; }
+  .marcas__lista li {
+    display: flex;
+    align-items: center;
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 1rem + 1.2vw, 2rem);
+    font-style: italic;
+    color: var(--texto-2);
+    white-space: nowrap;
+  }
+  .marcas__lista li::after {
+    content: '';
+    width: 5px;
+    height: 5px;
+    margin-inline: var(--e-6);
+    rotate: 45deg;
+    background: var(--oro);
+  }
+  @keyframes marcas-corre { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .marcas { mask-image: none; }
+    .marcas__pista { animation: none; width: auto; justify-content: center; }
+    .marcas__lista { flex-wrap: wrap; justify-content: center; row-gap: var(--e-3); }
+    .marcas__lista[aria-hidden='true'] { display: none; }
+  }
+</style>

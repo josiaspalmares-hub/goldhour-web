@@ -1,0 +1,58 @@
+---
+// Pantalla de entrada: la G dorada se dibuja y la cortina se abre. Es solo CSS (no espera a nada),
+// dura ~1,2 s y sale una sola vez por visita, así no estorba a quien navega o vuelve a la página.
+import monogramaSvg from '../assets/marca/monograma-G-oro.svg?raw';
+
+// pathLength=1 permite animar el trazo sin conocer el largo real de la G
+const monograma = monogramaSvg.replace('<path ', '<path pathLength="1" ');
+---
+
+<script is:inline>
+  // Si ya la vio en esta visita, se marca antes de pintar para que no aparezca otra vez.
+  try {
+    if (sessionStorage.getItem('gh-entrada')) document.documentElement.classList.add('entrada-vista');
+    else sessionStorage.setItem('gh-entrada', '1');
+  } catch (e) {
+    // Navegación privada estricta: sin memoria de visita, la entrada simplemente se muestra.
+    if (!(e instanceof DOMException)) throw e;
+  }
+</script>
+
+<div class="cargador" aria-hidden="true">
+  <div class="cargador__g" set:html={monograma} />
+</div>
+
+<style>
+  .cargador {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background: var(--negro);
+    pointer-events: none;
+    animation: cargador-abre 0.55s var(--ease-salida) 0.85s forwards;
+  }
+  :global(.entrada-vista) .cargador { display: none; }
+  .cargador__g { width: min(34vw, 150px); }
+  .cargador__g :global(svg) { display: block; width: 100%; height: auto; overflow: visible; }
+  /* La G se dibuja con un trazo dorado y luego se rellena */
+  .cargador__g :global(path) {
+    stroke: var(--oro);
+    stroke-width: 1.2;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    fill-opacity: 0;
+    animation: cargador-traza 0.7s ease-in-out forwards, cargador-rellena 0.35s ease-out 0.5s forwards;
+  }
+  .cargador__g :global(rect) { transform-box: fill-box; transform-origin: center; transform: scaleX(0); animation: cargador-linea 0.4s var(--ease-salida) 0.45s forwards; }
+
+  @keyframes cargador-traza { to { stroke-dashoffset: 0; } }
+  @keyframes cargador-rellena { to { fill-opacity: 1; stroke-opacity: 0; } }
+  @keyframes cargador-linea { to { transform: scaleX(1); } }
+  @keyframes cargador-abre { to { opacity: 0; visibility: hidden; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cargador { display: none; }
+  }
+</style>

@@ -1,0 +1,24 @@
+---
+import Legal from '../layouts/Legal.astro';
+import { creditosFotos } from '../data/creditos';
+---
+
+<Legal
+  titulo="Créditos de fotos"
+  descripcion="Autores y licencias de las fotos de ingredientes usadas en Goldhour."
+  actualizado="12 de noviembre de 2026"
+>
+  <p>
+    Las fotos de los perfumes son de sus marcas. Las de los ingredientes que flotan en la sección
+    "Entra en el frasco" vienen de Wikimedia Commons; les quitamos el fondo. Las de licencia CC BY-SA
+    se comparten bajo esa misma licencia.
+  </p>
+  <ul>
+    {creditosFotos.map((c) => (
+      <li>
+        <strong>{c.ingrediente}</strong>: foto de {c.autor}, <a href={c.licenciaUrl} rel="noopener" target="_blank">{c.licencia}</a>,{' '}
+        <a href={c.fuente} rel="noopener" target="_blank">ver original</a>.
+      </li>
+    ))}
+  </ul>
+</Legal>

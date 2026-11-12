@@ -22,6 +22,13 @@ export interface Tamano {
   precio: number;
 }
 
+// Perfil para "Encuentra tu perfume": cuán dulce, fresco y de noche es, de 0 a 10.
+export interface Perfil {
+  dulce: number;
+  fresco: number;
+  noche: number;
+}
+
 export interface Perfume {
   id: string;
   casa: string;
@@ -30,6 +37,7 @@ export interface Perfume {
   para: 'Él' | 'Ella' | 'Unisex';
   frase: string;
   ficha: Ficha;
+  perfil: Perfil;
   tamanos: Tamano[];
 }
 
@@ -51,6 +59,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Salidas', 'Clima fresco'],
     },
+    perfil: { dulce: 7, fresco: 2, noche: 8 },
     tamanos: frasco('100 ml', 35),
   },
   {
@@ -62,6 +71,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Diario', 'Regalo', 'Noche'],
     },
+    perfil: { dulce: 9, fresco: 2, noche: 6 },
     tamanos: frasco('100 ml', 140),
   },
   {
@@ -73,6 +83,7 @@ export const frascos: Perfume[] = [
       duracion: '6–8 h', duracionNivel: 4, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Citas', 'Eventos'],
     },
+    perfil: { dulce: 8, fresco: 1, noche: 9 },
     tamanos: frasco('80 ml', 145),
   },
   {
@@ -84,6 +95,7 @@ export const frascos: Perfume[] = [
       duracion: '6–8 h', duracionNivel: 4, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Fiesta'],
     },
+    perfil: { dulce: 7, fresco: 3, noche: 9 },
     tamanos: frasco('100 ml', 105),
   },
   {
@@ -95,6 +107,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Citas', 'Lluvia'],
     },
+    perfil: { dulce: 10, fresco: 0, noche: 8 },
     tamanos: frasco('100 ml', 45),
   },
   {
@@ -106,6 +119,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Día', 'Calor', 'Playa'],
     },
+    perfil: { dulce: 5, fresco: 8, noche: 3 },
     tamanos: frasco('100 ml', 60),
   },
   {
@@ -117,6 +131,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Salidas', 'Citas'],
     },
+    perfil: { dulce: 4, fresco: 6, noche: 7 },
     tamanos: frasco('105 ml', 45),
   },
   {
@@ -128,6 +143,7 @@ export const frascos: Perfume[] = [
       duracion: '6–8 h', duracionNivel: 4, proyeccion: 'Moderada a fuerte', proyeccionNivel: 3,
       ocasion: ['Diario', 'Calor', 'Gym'],
     },
+    perfil: { dulce: 3, fresco: 9, noche: 3 },
     tamanos: frasco('100 ml', 100),
   },
   {
@@ -139,6 +155,7 @@ export const frascos: Perfume[] = [
       duracion: '6–8 h', duracionNivel: 4, proyeccion: 'Moderada a fuerte', proyeccionNivel: 3,
       ocasion: ['Diario', 'Noche', 'Clima fresco'],
     },
+    perfil: { dulce: 7, fresco: 4, noche: 6 },
     tamanos: frasco('125 ml', 115),
   },
   {
@@ -150,6 +167,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Eventos', 'Citas'],
     },
+    perfil: { dulce: 7, fresco: 2, noche: 9 },
     tamanos: frasco('125 ml', 140),
   },
   {
@@ -161,6 +179,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Citas', 'Clima fresco'],
     },
+    perfil: { dulce: 8, fresco: 3, noche: 8 },
     tamanos: frasco('100 ml', 195),
   },
   {
@@ -172,6 +191,7 @@ export const frascos: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 5, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Eventos', 'Regalo'],
     },
+    perfil: { dulce: 8, fresco: 2, noche: 8 },
     tamanos: frasco('100 ml', 200),
   },
 ];
@@ -186,6 +206,7 @@ export const decants: Perfume[] = [
       duracion: '6–8 h', duracionNivel: 3, proyeccion: 'Moderada', proyeccionNivel: 3,
       ocasion: ['Diario', 'Oficina', 'Calor'],
     },
+    perfil: { dulce: 2, fresco: 9, noche: 2 },
     tamanos: decant('100 ml', 40),
   },
   {
@@ -197,6 +218,7 @@ export const decants: Perfume[] = [
       duracion: '6–8 h', duracionNivel: 3, proyeccion: 'Moderada', proyeccionNivel: 3,
       ocasion: ['Diario', 'Oficina', 'Noche'],
     },
+    perfil: { dulce: 3, fresco: 6, noche: 5 },
     tamanos: decant('100 ml', 35),
   },
   {
@@ -208,6 +230,7 @@ export const decants: Perfume[] = [
       duracion: '7–9 h', duracionNivel: 4, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Diario', 'Oficina', 'Noche'],
     },
+    perfil: { dulce: 2, fresco: 8, noche: 4 },
     tamanos: decant('100 ml', 55),
   },
   {
@@ -219,6 +242,7 @@ export const decants: Perfume[] = [
       duracion: '8–10 h', duracionNivel: 4, proyeccion: 'Fuerte', proyeccionNivel: 4,
       ocasion: ['Noche', 'Citas', 'Clima fresco'],
     },
+    perfil: { dulce: 5, fresco: 4, noche: 8 },
     tamanos: decant('100 ml', 215),
   },
   {
@@ -230,6 +254,7 @@ export const decants: Perfume[] = [
       duracion: '7–9 h', duracionNivel: 4, proyeccion: 'Moderada', proyeccionNivel: 3,
       ocasion: ['Diario', 'Noche', 'Todo el año'],
     },
+    perfil: { dulce: 3, fresco: 4, noche: 5 },
     tamanos: decant('100 ml + 20 ml', 30),
   },
   {
@@ -241,6 +266,7 @@ export const decants: Perfume[] = [
       duracion: '4–6 h', duracionNivel: 2, proyeccion: 'Suave', proyeccionNivel: 2,
       ocasion: ['Diario', 'Calor', 'Gym'],
     },
+    perfil: { dulce: 1, fresco: 10, noche: 1 },
     tamanos: decant('200 ml', 50),
   },
 ];

@@ -4,9 +4,9 @@
 
 ## Páginas
 
-- [Tienda](https://goldhourparfums.com/): vitrina de frascos, decants, guía para saber si un perfume es original, cómo comprar y preguntas frecuentes.
-- [Privacidad](https://goldhourparfums.com/privacidad): no guarda datos en servidores; el pedido se envía por WhatsApp.
-- [Cambios y devoluciones](https://goldhourparfums.com/cambios): cambios si el perfume llega dañado, abierto o no es el pedido.
+- [Tienda](https://goldhourparfums.vercel.app/): vitrina de frascos, decants, guía para saber si un perfume es original, cómo comprar y preguntas frecuentes.
+- [Privacidad](https://goldhourparfums.vercel.app/privacidad): no guarda datos en servidores; el pedido se envía por WhatsApp.
+- [Cambios y devoluciones](https://goldhourparfums.vercel.app/cambios): cambios si el perfume llega dañado, abierto o no es el pedido.
 
 ## Redes
 

@@ -43,8 +43,9 @@ const piramide = [
       <p class="ficha__frase">{perfume.frase}</p>
 
       <dl class="ficha__piramide">
-        {piramide.map((p) => (
-          <div>
+        {piramide.map((p, i) => (
+          <div style={`--i:${i}`}>
+            <span class="ficha__capa" aria-hidden="true"></span>
             <dt class="etiqueta">{p.nombre}</dt>
             <dd>{p.notas.join(' · ')}</dd>
           </div>
@@ -140,8 +141,28 @@ const piramide = [
   .ficha__frase { margin: var(--e-4) 0 var(--e-5); font-family: var(--serif); font-size: 1.125rem; color: var(--texto); }
 
   .ficha__piramide { margin: 0 0 var(--e-5); display: grid; gap: var(--e-3); padding-block: var(--e-4); border-block: 1px solid var(--linea); }
-  .ficha__piramide div { display: grid; grid-template-columns: 100px 1fr; gap: var(--e-3); align-items: baseline; }
+  .ficha__piramide div { display: grid; grid-template-columns: 52px 92px 1fr; gap: var(--e-3); align-items: center; }
   .ficha__piramide dd { margin: 0; color: var(--blanco); }
+  /* Cada fila es una capa de la pirámide: arriba la salida (lo primero que se siente), abajo el fondo (lo que dura) */
+  .ficha__capa {
+    --arriba: calc(var(--i) / 3 * 50%);
+    --abajo: calc((var(--i) + 1) / 3 * 50%);
+    height: 30px;
+    clip-path: polygon(calc(50% - var(--arriba)) 0, calc(50% + var(--arriba)) 0, calc(50% + var(--abajo)) 100%, calc(50% - var(--abajo)) 100%);
+    background: linear-gradient(180deg, var(--oro-claro), var(--oro));
+    opacity: calc(0.55 + var(--i) * 0.2);
+  }
+  /* Al abrir la ficha la pirámide se arma desde la base y luego aparecen las notas */
+  .ficha[open] .ficha__capa { animation: capa-arma 0.5s var(--ease-salida) calc(0.15s + (2 - var(--i)) * 0.12s) both; }
+  .ficha[open] .ficha__piramide dd,
+  .ficha[open] .ficha__piramide dt { animation: nota-entra 0.45s var(--ease-salida) calc(0.3s + (2 - var(--i)) * 0.12s) both; }
+  @keyframes capa-arma { from { transform: translateY(8px) scaleX(0.4); opacity: 0; } }
+  @keyframes nota-entra { from { opacity: 0; transform: translateX(-8px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .ficha[open] .ficha__capa,
+    .ficha[open] .ficha__piramide dd,
+    .ficha[open] .ficha__piramide dt { animation: none; }
+  }
 
   .ficha__niveles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--e-5); margin-bottom: var(--e-6); }
   .ficha__ocasion { display: grid; gap: var(--e-1); align-content: start; }
@@ -154,6 +175,6 @@ const piramide = [
     .ficha__frasquitos { right: 18%; width: 12%; height: 70%; }
     .ficha__niveles { grid-template-columns: 1fr 1fr; }
     .ficha__ocasion { grid-column: 1 / -1; }
-    .ficha__piramide div { grid-template-columns: 80px 1fr; }
+    .ficha__piramide div { grid-template-columns: 40px 76px 1fr; }
   }
 </style>
