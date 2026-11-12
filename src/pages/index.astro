@@ -1,17 +1,29 @@
 ---
 import Base from '../layouts/Base.astro';
+import Encabezado from '../components/Encabezado.astro';
 import Hero from '../components/Hero.astro';
+
+// Temporal: estas secciones se construyen en los próximos pasos.
+const pendientes = [
+  { id: 'vitrina', texto: 'Aquí va la vitrina' },
+  { id: 'decants', texto: 'Aquí van los decants' },
+  { id: 'como-comprar', texto: 'Aquí va cómo comprar' },
+  { id: 'pedido', texto: 'Aquí va el pedido' },
+];
 ---
 
 <Base
   titulo="Goldhour · Perfumes originales y decants en Caracas"
   descripcion="Perfumes originales y sellados en Caracas: Lattafa, Lancôme, Carolina Herrera, Paco Rabanne, Valentino y más. Decants de 5 y 10 ml. Pedidos por WhatsApp."
 >
+  <Encabezado />
   <main>
     <Hero />
-    <!-- Temporal: espacio para probar la luz al bajar; aquí irá la vitrina. -->
-    <section style="min-height:100svh;display:grid;place-items:center;border-top:1px solid var(--linea)">
-      <p class="etiqueta">Aquí va la vitrina</p>
-    </section>
+    {pendientes.map((p) => (
+      <section id={p.id} style="min-height:60svh;display:grid;place-items:center;border-top:1px solid var(--linea);scroll-margin-top:72px">
+        <p class="etiqueta">{p.texto}</p>
+        {p.id === 'vitrina' && <span id="khamrah-qahwa" />}
+      </section>
+    ))}
   </main>
 </Base>

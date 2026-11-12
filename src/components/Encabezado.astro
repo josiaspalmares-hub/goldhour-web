@@ -1,0 +1,101 @@
+---
+import monograma from '../assets/marca/monograma-G-recorte.svg';
+
+const enlaces = [
+  { href: '#vitrina', texto: 'Vitrina' },
+  { href: '#decants', texto: 'Decants' },
+  { href: '#como-comprar', texto: 'Cómo comprar' },
+];
+---
+
+<header class="encabezado">
+  <div class="encabezado__fila contenedor">
+    <a class="encabezado__marca" href="#inicio" aria-label="Goldhour, ir al inicio">
+      <img src={monograma.src} width="32" height="34" alt="" />
+    </a>
+
+    <nav class="encabezado__nav" aria-label="Secciones">
+      {enlaces.map((e) => <a href={e.href}>{e.texto}</a>)}
+    </nav>
+
+    <a class="encabezado__pedido" href="#pedido">
+      Pedido <span class="encabezado__cuenta" data-cuenta-pedido>0</span>
+    </a>
+  </div>
+</header>
+
+<script>
+  // El fondo del menú aparece solo cuando dejas atrás la parte de arriba de la portada.
+  const encabezado = document.querySelector('.encabezado');
+  const marcar = () => encabezado?.classList.toggle('encabezado--fijo', window.scrollY > 40);
+  marcar();
+  window.addEventListener('scroll', marcar, { passive: true });
+</script>
+
+<style>
+  .encabezado {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 20;
+    transition: background-color 0.3s, border-color 0.3s;
+    border-bottom: 1px solid transparent;
+  }
+  .encabezado--fijo {
+    background: rgba(13, 13, 13, 0.92);
+    border-bottom-color: var(--linea);
+  }
+
+  .encabezado__fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--e-5);
+    height: 72px;
+  }
+
+  .encabezado__marca { display: flex; align-items: center; min-height: 44px; }
+  .encabezado__marca img { width: 32px; height: 34px; }
+
+  .encabezado__nav { display: flex; gap: var(--e-6); }
+  .encabezado__nav a,
+  .encabezado__pedido {
+    font-size: 0.875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--texto);
+    padding-block: var(--e-3);
+    transition: color 0.2s;
+  }
+  .encabezado__nav a:hover,
+  .encabezado__pedido:hover { color: var(--oro-claro); }
+
+  .encabezado__pedido {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-2);
+    min-height: 44px;
+    padding-inline: var(--e-4);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+  }
+  .encabezado__cuenta {
+    display: inline-grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    padding-inline: 6px;
+    border-radius: 999px;
+    background: var(--oro);
+    color: var(--negro);
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    font-weight: 600;
+  }
+
+  @media (max-width: 767px) {
+    .encabezado__nav { display: none; }
+    .encabezado__fila { height: 60px; }
+    .encabezado__marca img { width: 28px; height: 30px; }
+  }
+</style>

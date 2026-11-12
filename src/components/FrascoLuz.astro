@@ -1,0 +1,74 @@
+---
+// Frasco con la capa de luz dorada recortada a su silueta (la misma foto hace de máscara).
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+
+interface Props {
+  foto: ImageMetadata;
+  alt: string;
+  ancho: number;
+  sizes: string;
+  principal?: boolean;
+  clase?: string;
+}
+const { foto, alt, ancho, sizes, principal = false, clase = '' } = Astro.props;
+
+const grande = await getImage({ src: foto, width: ancho, format: 'webp' });
+const chica = await getImage({ src: foto, width: Math.round(ancho * 0.6), format: 'webp' });
+---
+
+<div class={`frasco-luz ${clase}`} style={`--mascara: url(${grande.src})`}>
+  <img
+    src={grande.src}
+    srcset={`${chica.src} ${Math.round(ancho * 0.6)}w, ${grande.src} ${ancho}w`}
+    sizes={sizes}
+    width={foto.width}
+    height={foto.height}
+    alt={alt}
+    fetchpriority={principal ? 'high' : 'auto'}
+    decoding="async"
+  />
+  <div class="frasco-luz__brillo" aria-hidden="true"><span class="frasco-luz__franja"></span></div>
+</div>
+
+<style>
+  .frasco-luz { position: relative; }
+  .frasco-luz img { width: 100%; height: auto; }
+
+  .frasco-luz__brillo {
+    position: absolute;
+    inset: 0;
+    -webkit-mask: var(--mascara) center / contain no-repeat;
+    mask: var(--mascara) center / contain no-repeat;
+    overflow: hidden;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease-salida);
+  }
+  :global(.frasco-luz--listo) .frasco-luz__brillo { opacity: 1; }
+
+  .frasco-luz__franja {
+    position: absolute;
+    top: -10%;
+    bottom: -10%;
+    left: 10%;
+    width: 80%;
+    background: linear-gradient(100deg, transparent 18%, rgba(230, 203, 130, 0.35) 38%, rgba(255, 240, 200, 0.9) 50%, rgba(230, 203, 130, 0.35) 62%, transparent 82%);
+    transform: translateX(-160%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .frasco-luz__franja { transform: translateX(-30%); opacity: 0.6; }
+  }
+</style>
+
+<script>
+  // Enciende la luz de cada frasco cuando su foto ya cargó.
+  document.querySelectorAll<HTMLElement>('.frasco-luz').forEach((frasco) => {
+    const foto = frasco.querySelector('img');
+    const encender = () => frasco.classList.add('frasco-luz--listo');
+    if (foto?.complete) encender();
+    else foto?.addEventListener('load', encender, { once: true });
+  });
+</script>

@@ -1,16 +1,20 @@
 ---
-import { getImage } from 'astro:assets';
 import logoNombre from '../assets/marca/logo-nombre-oro.svg?raw';
-import frascoHero from '../assets/perfumes/khamrah-qahwa.png';
-import { WHATSAPP } from '../data/perfumes';
+import khamrah from '../assets/perfumes/khamrah-qahwa.png';
+import leParfum from '../assets/perfumes/le-male-le-parfum.png';
+import goodGirl from '../assets/perfumes/good-girl.png';
+import FrascoLuz from './FrascoLuz.astro';
+import { frascos, WHATSAPP } from '../data/perfumes';
 
-// La misma imagen sirve de foto y de máscara para que la luz solo toque el vidrio.
-const foto = await getImage({ src: frascoHero, width: 900, format: 'webp' });
-const fotoMovil = await getImage({ src: frascoHero, width: 560, format: 'webp' });
+const protagonista = frascos.find((p) => p.id === 'khamrah-qahwa');
+if (!protagonista) throw new Error('Falta Khamrah Qahwa en src/data/perfumes.ts');
+const precio = protagonista.tamanos[0].precio;
+
 const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero información de un perfume.');
+const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvil, Zelle, Binance o efectivo', 'Delivery en Caracas'];
 ---
 
-<section class="hero" aria-labelledby="hero-titulo">
+<section id="inicio" class="hero" aria-labelledby="hero-titulo">
   <div class="hero__luz-fondo" aria-hidden="true"></div>
 
   <div class="hero__grid contenedor">
@@ -25,29 +29,29 @@ const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero info
         <a class="boton boton--principal" href={`https://wa.me/${WHATSAPP}?text=${mensaje}`} target="_blank" rel="noopener">
           Escríbenos por WhatsApp
         </a>
+        <a class="boton boton--secundario" href="#vitrina">Ver la vitrina</a>
       </div>
-      <p class="hero__dato hero__paso">Delivery en Caracas · Envíos por MRW, Zoom y Tealca</p>
     </div>
 
-    <figure class="hero__frasco hero__paso" style={`--mascara: url(${foto.src})`}>
+    <div class="hero__escena hero__paso">
+      <FrascoLuz foto={leParfum} alt="Frasco de Le Male Le Parfum de Jean Paul Gaultier" ancho={520} sizes="(max-width: 767px) 30vw, 16vw" clase="hero__frasco hero__frasco--izq" />
+      <FrascoLuz foto={goodGirl} alt="Frasco de Good Girl de Carolina Herrera" ancho={520} sizes="(max-width: 767px) 30vw, 16vw" clase="hero__frasco hero__frasco--der" />
+      <FrascoLuz foto={khamrah} alt="Frasco de Khamrah Qahwa de Lattafa" ancho={900} sizes="(max-width: 767px) 46vw, 28vw" principal clase="hero__frasco hero__frasco--frente" />
       <div class="hero__base" aria-hidden="true"></div>
-      <img
-        src={foto.src}
-        srcset={`${fotoMovil.src} 560w, ${foto.src} 900w`}
-        sizes="(max-width: 767px) 70vw, 40vw"
-        width={frascoHero.width}
-        height={frascoHero.height}
-        alt="Frasco de Khamrah Qahwa de Lattafa"
-        fetchpriority="high"
-        decoding="async"
-      />
-      <div class="hero__brillo" aria-hidden="true"><span class="hero__franja"></span></div>
-      <figcaption class="hero__pie">
-        <span class="etiqueta">Lattafa</span>
-        <span class="hero__pie-nombre">Khamrah Qahwa</span>
-      </figcaption>
-    </figure>
+
+      <a class="hero__precio" href={`#${protagonista.id}`}>
+        <span class="hero__precio-linea" aria-hidden="true"></span>
+        <span class="etiqueta">{protagonista.casa}</span>
+        <span class="hero__precio-nombre">{protagonista.nombre}</span>
+        <span class="hero__precio-monto">${precio}</span>
+        <span class="hero__precio-ver">Ver ficha</span>
+      </a>
+    </div>
   </div>
+
+  <ul class="hero__confianza contenedor hero__paso" aria-label="Por qué comprar en Goldhour">
+    {confianza.map((item) => <li>{item}</li>)}
+  </ul>
 </section>
 
 <script>
@@ -57,41 +61,41 @@ const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero info
   const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const pasos = document.querySelectorAll('.hero__paso');
 
-  // La luz se enciende solo cuando el frasco ya cargó, para que no aparezca una silueta vacía.
-  const figura = document.querySelector('.hero__frasco');
-  const foto = figura?.querySelector('img');
-  const encender = () => figura?.classList.add('hero__frasco--listo');
-  if (foto?.complete) encender();
-  else foto?.addEventListener('load', encender, { once: true });
-
   if (reducir) {
     gsap.set(pasos, { opacity: 1, y: 0 });
   } else {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Entrada por pasos: etiqueta → logo → lema → botón → dato, y el frasco sube con la luz.
-    gsap.fromTo(
-      pasos,
-      { opacity: 0, y: 18 },
-      { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.09, delay: 0.1 },
-    );
+    // Entrada por pasos: etiqueta → logo → lema → botones → frascos → franja de confianza.
+    gsap.fromTo(pasos, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.09, delay: 0.1 });
 
-    // La hora dorada: la franja de luz cruza el frasco mientras bajas.
-    gsap.fromTo(
-      '.hero__franja',
-      { xPercent: -160 },
-      {
-        xPercent: 160,
-        ease: 'none',
-        scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 },
-      },
-    );
-    gsap.to('.hero__luz-fondo', {
-      xPercent: 18,
-      opacity: 0.55,
-      ease: 'none',
-      scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 },
+    // La hora dorada: la luz cruza los tres frascos mientras bajas, el de atrás un poco después.
+    const recorrido = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 };
+    document.querySelectorAll('.hero__frasco .frasco-luz__franja').forEach((franja, i) => {
+      gsap.fromTo(franja, { xPercent: -160 - i * 25 }, { xPercent: 160 - i * 25, ease: 'none', scrollTrigger: recorrido });
     });
+    gsap.to('.hero__luz-fondo', { opacity: 0.55, ease: 'none', scrollTrigger: recorrido });
+
+    // En computadora, la luz de fondo se corre un poco hacia el ratón.
+    const escena = document.querySelector<HTMLElement>('.hero__escena');
+    if (escena && window.matchMedia('(pointer: fine)').matches) {
+      const moverX = gsap.quickTo('.hero__luz-fondo', 'x', { duration: 0.8, ease: 'power3.out' });
+      const moverY = gsap.quickTo('.hero__luz-fondo', 'y', { duration: 0.8, ease: 'power3.out' });
+      const inclinar = gsap.quickTo('.hero__frasco--frente', 'rotationY', { duration: 0.8, ease: 'power3.out' });
+      escena.addEventListener('pointermove', (e) => {
+        const caja = escena.getBoundingClientRect();
+        const dx = (e.clientX - caja.left) / caja.width - 0.5;
+        const dy = (e.clientY - caja.top) / caja.height - 0.5;
+        moverX(dx * 120);
+        moverY(dy * 80);
+        inclinar(dx * 6);
+      });
+      escena.addEventListener('pointerleave', () => {
+        moverX(0);
+        moverY(0);
+        inclinar(0);
+      });
+    }
   }
 </script>
 
@@ -100,30 +104,31 @@ const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero info
     position: relative;
     min-height: 100svh;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    justify-content: center;
     overflow: hidden;
-    padding-block: var(--e-9) var(--e-8);
+    padding-block: var(--e-9) 0;
     isolation: isolate;
   }
 
-  /* Luz cálida lateral, como el sol de la tarde que entra por la izquierda. */
+  /* Luz cálida, como el sol de la tarde detrás de la vitrina. */
   .hero__luz-fondo {
     position: absolute;
-    inset: -20% -10% -20% 30%;
-    background: radial-gradient(closest-side, rgba(201, 165, 92, 0.16), transparent 70%);
+    inset: -10% -15% 0 35%;
+    background: radial-gradient(closest-side, rgba(201, 165, 92, 0.18), transparent 70%);
     z-index: -1;
     pointer-events: none;
   }
 
   .hero__grid {
+    flex: 1;
     display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
     gap: var(--e-7);
   }
 
   .hero__texto { max-width: 36rem; }
-
   .hero__marca { margin: var(--e-5) 0 var(--e-6); line-height: 0; }
   .hero__logo :global(svg) { width: min(100%, 560px); height: auto; }
 
@@ -139,83 +144,131 @@ const mensaje = encodeURIComponent('Hola Goldhour, vengo de la web y quiero info
 
   .hero__acciones { display: flex; flex-wrap: wrap; gap: var(--e-3); }
 
-  .hero__dato { margin: var(--e-5) 0 0; font-size: var(--t-chico); color: var(--texto-2); letter-spacing: 0.04em; }
-
-  .hero__frasco {
+  /* Escena de vitrina: un frasco protagonista y dos detrás, fuera de foco. */
+  .hero__escena {
     position: relative;
-    margin: 0;
     justify-self: center;
-    width: min(100%, 420px);
-    padding-bottom: var(--e-8);
+    width: min(100%, 560px);
+    aspect-ratio: 1 / 1.05;
+    perspective: 900px;
   }
-
-  .hero__frasco img {
-    position: relative;
-    width: 100%;
-    height: auto;
+  .hero__escena :global(.hero__frasco) {
+    position: absolute;
+    bottom: 14%;
+  }
+  .hero__escena :global(.hero__frasco--frente) {
+    left: 50%;
+    width: 52%;
+    translate: -50% 0;
+    z-index: 3;
     filter: drop-shadow(0 30px 30px rgba(0, 0, 0, 0.6));
   }
+  .hero__escena :global(.hero__frasco--izq),
+  .hero__escena :global(.hero__frasco--der) {
+    width: 28%;
+    bottom: 22%;
+    filter: blur(1.5px) brightness(0.55);
+    z-index: 1;
+  }
+  .hero__escena :global(.hero__frasco--izq) { left: 4%; }
+  .hero__escena :global(.hero__frasco--der) { right: 4%; }
 
-  /* Base donde descansa el frasco, iluminada solo del lado de la luz. */
   .hero__base {
-    position: absolute;
-    left: -12%;
-    right: -12%;
-    bottom: calc(var(--e-8) - 26px);
-    height: 52px;
-    border-radius: 50%;
-    background: radial-gradient(closest-side, rgba(201, 165, 92, 0.28), rgba(201, 165, 92, 0.05) 60%, transparent 75%);
-  }
-
-  /* Capa de brillo recortada con la silueta del frasco. */
-  .hero__brillo {
-    position: absolute;
-    inset: 0 0 var(--e-8) 0;
-    -webkit-mask: var(--mascara) center / contain no-repeat;
-    mask: var(--mascara) center / contain no-repeat;
-    overflow: hidden;
-    mix-blend-mode: screen;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.6s var(--ease-salida);
-  }
-  .hero__frasco--listo .hero__brillo { opacity: 1; }
-  .hero__franja {
-    position: absolute;
-    top: -10%;
-    bottom: -10%;
-    left: 10%;
-    width: 80%;
-    background: linear-gradient(100deg, transparent 18%, rgba(230, 203, 130, 0.35) 38%, rgba(255, 240, 200, 0.9) 50%, rgba(230, 203, 130, 0.35) 62%, transparent 82%);
-    transform: translateX(-160%);
-  }
-
-  .hero__pie {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--e-1);
+    bottom: 10%;
+    height: 56px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(201, 165, 92, 0.28), rgba(201, 165, 92, 0.05) 60%, transparent 75%);
+    z-index: 0;
   }
-  .hero__pie-nombre { font-family: var(--serif); font-size: 1.25rem; color: var(--blanco); }
+
+  /* Etiqueta de precio que señala al frasco protagonista. */
+  .hero__precio {
+    position: absolute;
+    right: -2%;
+    bottom: 34%;
+    z-index: 4;
+    display: grid;
+    gap: 2px;
+    padding: var(--e-3) var(--e-4);
+    background: rgba(13, 13, 13, 0.82);
+    border: 1px solid var(--linea);
+    border-radius: var(--radio);
+    text-decoration: none;
+    min-width: 150px;
+    transition: border-color 0.2s;
+  }
+  .hero__precio:hover { border-color: var(--oro); }
+  .hero__precio-linea {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    width: 56px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--oro));
+  }
+  .hero__precio-nombre { font-family: var(--serif); font-size: 1.125rem; color: var(--blanco); line-height: 1.2; }
+  .hero__precio-monto { font-family: var(--serif); font-size: 1.5rem; color: var(--oro-claro); line-height: 1.2; }
+  .hero__precio-ver { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--texto-2); }
+
+  /* Franja de confianza: responde lo primero que pregunta todo el mundo. */
+  .hero__confianza {
+    list-style: none;
+    margin: var(--e-7) auto 0;
+    padding-block: var(--e-5);
+    border-top: 1px solid var(--linea);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--e-3) var(--e-5);
+    font-size: var(--t-chico);
+    letter-spacing: 0.08em;
+    color: var(--texto-2);
+  }
+  .hero__confianza li { display: flex; align-items: center; gap: var(--e-3); }
+  .hero__confianza li + li::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    background: var(--oro);
+    rotate: 45deg;
+  }
 
   .hero__paso { opacity: 0; }
 
   @media (prefers-reduced-motion: reduce) {
     .hero__paso { opacity: 1; }
-    .hero__franja { transform: translateX(0); opacity: 0.6; }
   }
 
   @media (max-width: 767px) {
-    .hero { padding-block: var(--e-8) var(--e-7); align-items: flex-start; }
-    .hero__grid { grid-template-columns: 1fr; gap: var(--e-6); }
-    .hero__frasco { order: -1; width: min(44vw, 200px); max-height: 40svh; padding-bottom: var(--e-7); }
-    .hero__brillo { bottom: var(--e-7); }
-    .hero__base { bottom: calc(var(--e-7) - 22px); height: 44px; }
-    .hero__marca { margin: var(--e-4) 0 var(--e-5); }
-    .hero__acciones .boton { width: 100%; }
+    .hero { padding-block: 76px 0; }
+    .hero__grid { grid-template-columns: 1fr; gap: var(--e-4); }
+    .hero__escena { order: -1; width: min(100%, 340px); aspect-ratio: 1 / 0.82; }
+    .hero__escena :global(.hero__frasco--frente) { width: 40%; }
+    .hero__escena :global(.hero__frasco--izq),
+    .hero__escena :global(.hero__frasco--der) { width: 22%; }
+    /* En el teléfono la etiqueta va en una línea debajo de los frascos para no taparlos. */
+    .hero__precio {
+      right: auto;
+      left: 50%;
+      bottom: 0;
+      translate: -50% 0;
+      display: flex;
+      align-items: baseline;
+      gap: var(--e-2);
+      white-space: nowrap;
+      min-width: 0;
+      padding: var(--e-2) var(--e-3);
+    }
+    .hero__precio-linea { display: none; }
+    .hero__precio-nombre { font-size: 0.9375rem; }
+    .hero__precio-monto { font-size: 1.0625rem; }
+    .hero__marca { margin: var(--e-3) 0 var(--e-4); }
+    .hero__lema { margin-bottom: var(--e-5); }
+    .hero__acciones .boton { flex: 1 1 100%; }
+    .hero__confianza { margin-top: var(--e-6); justify-content: flex-start; flex-direction: column; gap: var(--e-2); }
+    .hero__confianza li + li::before { display: none; }
   }
 </style>
