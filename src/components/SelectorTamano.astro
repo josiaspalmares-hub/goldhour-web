@@ -1,0 +1,46 @@
+---
+// Elegir tamaño de un decant: 5 ml, 10 ml o el frasco completo. Va dentro de un [data-producto].
+import type { Perfume } from '../data/perfumes';
+
+interface Props {
+  perfume: Perfume;
+  grupo: string; // nombre único del grupo de opciones (tarjeta o ficha)
+}
+const { perfume, grupo } = Astro.props;
+---
+
+<fieldset class="selector">
+  <legend class="solo-lector">Elige el tamaño de {perfume.nombre}</legend>
+  {perfume.tamanos.map((t, i) => (
+    <label class="selector__opcion">
+      <input type="radio" name={grupo} value={t.etiqueta} data-precio={t.precio} checked={i === 0} />
+      <span class="selector__texto">{t.etiqueta}</span>
+      <span class="selector__precio">${t.precio}</span>
+    </label>
+  ))}
+</fieldset>
+
+<style>
+  .selector { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--e-2); }
+
+  .selector__opcion { position: relative; cursor: pointer; }
+  .selector__opcion input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+
+  .selector__opcion span { pointer-events: none; }
+  .selector__opcion {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--e-2);
+    min-height: 44px;
+    padding: var(--e-2) var(--e-4);
+    border: 1px solid var(--selector-borde, rgba(27, 27, 27, 0.25));
+    border-radius: 999px;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+  }
+  .selector__texto { font-size: 0.875rem; }
+  .selector__precio { font-family: var(--serif); font-size: 1rem; }
+
+  .selector__opcion:hover { border-color: var(--oro); }
+  .selector__opcion:has(input:checked) { background: var(--selector-activo, var(--tinta)); border-color: var(--selector-activo, var(--tinta)); color: var(--selector-activo-texto, var(--marfil)); }
+  .selector__opcion:has(input:focus-visible) { outline: 2px solid var(--oro); outline-offset: 3px; }
+</style>

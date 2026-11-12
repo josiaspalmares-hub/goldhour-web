@@ -8,6 +8,7 @@
   --linea: rgba(201, 165, 92, 0.22);
   --oro: #c9a55c;
   --oro-claro: #e6cb82;
+  --oro-oscuro: #8a6624; /* etiquetas en oro sobre marfil, para que se lean */
   --oro-lamina: linear-gradient(180deg, #a98234 0%, #e6cb82 30%, #f7e6ae 46%, #d9b565 58%, #a57d2f 80%, #8a6624 100%);
   --marfil: #f2ece1;
   --blanco: #ffffff;
@@ -103,6 +104,8 @@ a { color: inherit; }
 }
 .boton--principal { background: var(--oro); color: var(--negro); border: 1px solid var(--oro); }
 .boton--principal:hover { background: var(--oro-claro); border-color: var(--oro-claro); }
+.boton--oscuro { background: var(--tinta); color: var(--marfil); border: 1px solid var(--tinta); }
+.boton--oscuro:hover { background: #000; border-color: #000; }
 .boton--secundario { background: transparent; color: var(--texto); border: 1px solid var(--linea); }
 .boton--secundario:hover { border-color: var(--oro); color: var(--blanco); }
 
