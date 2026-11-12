@@ -127,8 +127,11 @@ const piramide = [
   }
   .ficha__foto :global(.ficha__frasco) { max-height: 420px; width: auto; object-fit: contain; filter: drop-shadow(0 24px 24px rgba(0, 0, 0, 0.6)); }
   /* Decant: el frasco un poco a la izquierda y, a su lado, el frasquito del tamaño elegido. */
-  .ficha__foto--decant { position: relative; place-items: end start; padding-right: 26%; }
-  .ficha__foto--decant :global(.ficha__frasco) { max-height: 400px; }
+  .ficha__foto--decant { position: relative; place-items: end center; }
+  .ficha__foto--decant :global(.ficha__frasco) { max-height: 400px; translate: -24% 0; transition: translate 0.55s var(--ease-salida); }
+  /* Con el frasco completo el perfume vuelve al centro de la foto. */
+  :global(.ficha[data-elegido^='Frasco']) .ficha__foto--decant :global(.ficha__frasco) { translate: 0 0; }
+  @media (prefers-reduced-motion: reduce) { .ficha__foto--decant :global(.ficha__frasco) { transition: none; } }
   .ficha__frasquitos { position: absolute; right: 6%; bottom: 0; width: 18%; height: 62%; }
   .ficha__frasquitos :global(.frasquitos) { inset: 0; }
 
@@ -147,7 +150,6 @@ const piramide = [
   @media (max-width: 767px) {
     .ficha__caja { grid-template-columns: 1fr; padding: var(--e-7) var(--e-5) var(--e-5); gap: var(--e-4); }
     .ficha__foto :global(.ficha__frasco) { max-height: 220px; }
-    .ficha__foto--decant { place-items: end center; padding-right: 0; }
     .ficha__foto--decant :global(.ficha__frasco) { max-height: 220px; translate: -22% 0; }
     .ficha__frasquitos { right: 18%; width: 12%; height: 70%; }
     .ficha__niveles { grid-template-columns: 1fr 1fr; }

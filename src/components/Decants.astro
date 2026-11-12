@@ -99,14 +99,17 @@ import { fotoDe } from '../data/fotos';
     object-fit: contain;
     object-position: center bottom;
     filter: drop-shadow(0 16px 14px rgba(0, 0, 0, 0.28));
-    transition: transform 0.4s var(--ease-salida);
+    transition: transform 0.4s var(--ease-salida), translate 0.55s var(--ease-salida);
   }
   /* Al lado del perfume, paradito, el frasquito del tamaño elegido (5 ml o 10 ml). */
   .decant__frasquitos { position: absolute; right: 6%; bottom: 12%; width: 16%; height: 66%; }
   .decant__frasquitos :global(.frasquitos) { inset: 0; }
+  /* Con el frasco completo no hay frasquito: el perfume se corre al centro para no dejar el hueco. */
+  .decant[data-elegido^='Frasco'] .decant__foto :global(.decant__frasco) { translate: 13.6% 0; }
   .decant__foto:hover :global(.decant__frasco) { transform: translateY(-4px); }
   @media (prefers-reduced-motion: reduce) {
     .decant__foto:hover :global(.decant__frasco) { transform: none; }
+    .decant__foto :global(.decant__frasco) { transition: none; }
   }
 
   .decant__nombre { font-family: var(--serif); font-size: 1.625rem; font-weight: 500; line-height: 1.15; margin: var(--e-1) 0 var(--e-2); color: var(--tinta); }
@@ -139,6 +142,7 @@ import { fotoDe } from '../data/fotos';
     .decant { grid-template-columns: 1fr; }
     .decant__foto { aspect-ratio: 5 / 4; }
     .decant__foto :global(.decant__frasco) { inset: 10% 30% 12% 20%; width: 50%; }
+    .decant[data-elegido^='Frasco'] .decant__foto :global(.decant__frasco) { translate: 10% 0; }
     .decant__frasquitos { right: 16%; width: 10%; height: 56%; }
     .ficha-decant {
       position: sticky;
