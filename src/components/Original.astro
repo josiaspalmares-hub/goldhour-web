@@ -129,6 +129,18 @@ const promesas = ['Perfumes 100% originales y sellados', 'Fotos y video de tu pe
   .original__promesas li { display: flex; align-items: center; gap: var(--e-3); }
   .original__promesas li::before { content: ''; width: 6px; height: 6px; background: var(--oro); rotate: 45deg; }
 
+  /* En pantallas anchas caben las cinco: van centradas, sin deslizar. */
+  @media (min-width: 1280px) {
+    .original__lista {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(5, 1fr);
+      width: min(1400px, calc(100vw - 2 * var(--margen)));
+      margin-inline: calc((100% - min(1400px, 100vw - 2 * var(--margen))) / 2);
+      padding: 0;
+      overflow: visible;
+    }
+  }
+
   @media (max-width: 767px) {
     .original { padding-block: var(--e-8); }
     .original__lista { grid-auto-columns: 82%; }
