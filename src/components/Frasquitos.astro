@@ -1,0 +1,37 @@
+---
+// Los frasquitos de decant (foto real, vacíos, tapa negra). Solo se ve el del tamaño elegido:
+// lo decide el atributo data-elegido de la tarjeta o de la ficha que los contiene.
+import { getImage } from 'astro:assets';
+import frasquito from '../assets/marca/frasquito-decant.png';
+
+const foto = await getImage({ src: frasquito, width: 200, format: 'webp' });
+---
+
+<span class="frasquitos" aria-hidden="true">
+  <img class="frasquito" data-tam="5 ml" src={foto.src} width={frasquito.width} height={frasquito.height} alt="" loading="lazy" />
+  <img class="frasquito" data-tam="10 ml" src={foto.src} width={frasquito.width} height={frasquito.height} alt="" loading="lazy" />
+</span>
+
+<style>
+  .frasquitos { position: absolute; display: block; }
+  .frasquito {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: auto;
+    translate: -50% 0;
+    filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.22));
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.35s var(--ease-salida), transform 0.45s var(--ease-salida);
+  }
+  .frasquito[data-tam='10 ml'] { height: 100%; }
+  .frasquito[data-tam='5 ml'] { height: 66%; }
+
+  :global([data-elegido='5 ml']) .frasquito[data-tam='5 ml'],
+  :global([data-elegido='10 ml']) .frasquito[data-tam='10 ml'] { opacity: 1; transform: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .frasquito { transition: opacity 0.2s; transform: none; }
+  }
+</style>

@@ -61,6 +61,15 @@ function agregarDesde(boton: HTMLButtonElement) {
   }, 1600);
 }
 
+// Al elegir un tamaño (5 ml, 10 ml o frasco) se avisa a la tarjeta o ficha que lo contiene,
+// para que muestre el frasquito de ese tamaño junto al perfume.
+document.addEventListener('change', (e) => {
+  const opcion = e.target as HTMLInputElement;
+  if (opcion.type !== 'radio') return;
+  const contenedor = opcion.closest<HTMLElement>('[data-elegido]');
+  if (contenedor) contenedor.dataset.elegido = opcion.value;
+});
+
 function pintarContador() {
   const unidades = String(pedido.unidades());
   document.querySelectorAll('[data-cuenta-pedido]').forEach((n) => (n.textContent = unidades));

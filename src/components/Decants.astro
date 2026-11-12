@@ -1,14 +1,10 @@
 ---
 import { Image } from 'astro:assets';
-import { getImage } from 'astro:assets';
 import Ficha from './Ficha.astro';
+import Frasquitos from './Frasquitos.astro';
 import SelectorTamano from './SelectorTamano.astro';
 import { decants } from '../data/perfumes';
 import { fotoDe } from '../data/fotos';
-import frasquito from '../assets/marca/frasquito-decant.png';
-
-// Foto real del frasquito de vidrio con tapa negra que se usa para los decants (vacío).
-const fotoFrasquito = await getImage({ src: frasquito, width: 160, format: 'webp' });
 ---
 
 <section id="decants" class="decants" aria-labelledby="decants-titulo">
@@ -27,10 +23,7 @@ const fotoFrasquito = await getImage({ src: frasquito, width: 160, format: 'webp
         <li class="decant" id={p.id} data-producto data-elegido={p.tamanos[0].etiqueta}>
           <button type="button" class="decant__foto" data-abrir-ficha={p.id} aria-label={`Ver la ficha de ${p.nombre}`}>
             <Image class="decant__frasco" src={fotoDe(p.id)} alt="" width={420} format="webp" loading="lazy" />
-            <span class="decant__frasquitos" aria-hidden="true">
-              <img class="decant__frasquito" data-tam="5 ml" src={fotoFrasquito.src} width={frasquito.width} height={frasquito.height} alt="" loading="lazy" />
-              <img class="decant__frasquito" data-tam="10 ml" src={fotoFrasquito.src} width={frasquito.width} height={frasquito.height} alt="" loading="lazy" />
-            </span>
+            <span class="decant__frasquitos"><Frasquitos /></span>
           </button>
 
           <div class="decant__info">
@@ -61,16 +54,6 @@ const fotoFrasquito = await getImage({ src: frasquito, width: 160, format: 'webp
     </Ficha>
   ))}
 </section>
-
-<script>
-  // Al elegir 5 ml o 10 ml se enciende ese frasquito; con el frasco completo se atenúan los dos.
-  document.querySelectorAll<HTMLElement>('.decant').forEach((tarjeta) => {
-    tarjeta.addEventListener('change', (e) => {
-      const opcion = e.target as HTMLInputElement;
-      if (opcion.type === 'radio') tarjeta.dataset.elegido = opcion.value;
-    });
-  });
-</script>
 
 <style>
   .decants {
@@ -118,30 +101,12 @@ const fotoFrasquito = await getImage({ src: frasquito, width: 160, format: 'webp
     filter: drop-shadow(0 16px 14px rgba(0, 0, 0, 0.28));
     transition: transform 0.4s var(--ease-salida);
   }
-  /* Los dos frasquitos (5 ml y 10 ml) al pie del perfume; el tamaño elegido se ve encendido. */
-  .decant__frasquitos {
-    position: absolute;
-    right: 5%;
-    bottom: 12%;
-    height: 58%;
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-  }
-  .decant__frasquito {
-    width: auto;
-    filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.22));
-    transition: opacity 0.3s, transform 0.4s var(--ease-salida);
-  }
-  .decant__frasquito[data-tam='10 ml'] { height: 100%; }
-  .decant__frasquito[data-tam='5 ml'] { height: 66%; }
-  .decant .decant__frasquito { opacity: 0.4; }
-  .decant[data-elegido='5 ml'] .decant__frasquito[data-tam='5 ml'],
-  .decant[data-elegido='10 ml'] .decant__frasquito[data-tam='10 ml'] { opacity: 1; transform: translateY(-4px); }
+  /* Al lado del perfume, paradito, el frasquito del tamaño elegido (5 ml o 10 ml). */
+  .decant__frasquitos { position: absolute; right: 6%; bottom: 12%; width: 16%; height: 66%; }
+  .decant__frasquitos :global(.frasquitos) { inset: 0; }
   .decant__foto:hover :global(.decant__frasco) { transform: translateY(-4px); }
   @media (prefers-reduced-motion: reduce) {
-    .decant__foto:hover :global(.decant__frasco),
-    .decant__frasquito { transform: none !important; }
+    .decant__foto:hover :global(.decant__frasco) { transform: none; }
   }
 
   .decant__nombre { font-family: var(--serif); font-size: 1.625rem; font-weight: 500; line-height: 1.15; margin: var(--e-1) 0 var(--e-2); color: var(--tinta); }
@@ -174,7 +139,7 @@ const fotoFrasquito = await getImage({ src: frasquito, width: 160, format: 'webp
     .decant { grid-template-columns: 1fr; }
     .decant__foto { aspect-ratio: 5 / 4; }
     .decant__foto :global(.decant__frasco) { inset: 10% 30% 12% 20%; width: 50%; }
-    .decant__frasquitos { right: 14%; height: 50%; }
+    .decant__frasquitos { right: 16%; width: 10%; height: 56%; }
     .ficha-decant {
       position: sticky;
       bottom: 0;
