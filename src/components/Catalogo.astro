@@ -168,6 +168,13 @@ import { WHATSAPP } from '../data/perfumes';
   }
   $('[data-cat-cerrar]').addEventListener('click', () => ficha.close());
   ficha.addEventListener('click', (e) => { if (e.target === ficha) ficha.close(); });
+  // Otras secciones (Encuentra tu perfume) abren la ficha de un perfume del catálogo por su slug
+  document.addEventListener('gh:ver-perfume', async (e) => {
+    const { slug } = (e as CustomEvent<{ slug: string }>).detail;
+    if (!todos.length) await cargar();
+    const p = todos.find((x) => x.slug === slug);
+    if (p) verFicha(p);
+  });
 
   function filtrar() {
     const palabras = sinAcentos(buscar.value.trim()).split(/\s+/).filter(Boolean);

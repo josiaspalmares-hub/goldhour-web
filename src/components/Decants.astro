@@ -22,7 +22,7 @@ import { fotoDe } from '../data/fotos';
       {decants.map((p) => (
         <li class="decant" id={p.id} data-producto data-elegido={p.tamanos[0].etiqueta}>
           <button type="button" class="decant__foto" data-abrir-ficha={p.id} aria-label={`Ver la ficha de ${p.nombre}`}>
-            <Image class="decant__frasco" src={fotoDe(p.id)} alt="" width={420} format="webp" loading="lazy" />
+            <Image class="decant__frasco" src={fotoDe(p.foto ?? p.id)} alt="" width={420} format="webp" loading="lazy" />
             <span class="decant__frasquitos"><Frasquitos /></span>
           </button>
 

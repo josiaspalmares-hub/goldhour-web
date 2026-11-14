@@ -34,8 +34,15 @@ export const ESTADOS: Record<Estado, string> = {
   agotado: 'Agotado',
 };
 
-/** Todos los perfumes del catálogo (lectura pública). Lanza un error si la red o Supabase fallan. */
-export async function leerCatalogo(): Promise<PerfumeCatalogo[]> {
+/** Todos los perfumes del catálogo (lectura pública). Lanza un error si la red o Supabase fallan.
+ *  El catálogo y "Encuentra tu perfume" lo comparten: se pide una sola vez (y otra vez solo si falló). */
+let pedido: Promise<PerfumeCatalogo[]> | null = null;
+export function leerCatalogo(): Promise<PerfumeCatalogo[]> {
+  pedido ??= pedirCatalogo().catch((error) => { pedido = null; throw error; });
+  return pedido;
+}
+
+async function pedirCatalogo(): Promise<PerfumeCatalogo[]> {
   const { url, key } = config();
   const campos = 'id,slug,nombre,categoria,precio_usd,familia,notas,estado,destacado,foto_url';
   const res = await fetch(`${url}/rest/v1/perfumes?select=${campos}&order=destacado.desc,nombre.asc`, {

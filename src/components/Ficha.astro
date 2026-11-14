@@ -32,7 +32,7 @@ const piramide = [
     <button type="button" class="ficha__cerrar" data-cerrar-ficha aria-label="Cerrar la ficha">Cerrar</button>
 
     <div class={`ficha__foto ${esDecant ? 'ficha__foto--decant' : ''}`}>
-      <Image class="ficha__frasco" src={fotoDe(perfume.id)} alt={`Frasco de ${perfume.nombre}`} width={560} format="webp" loading="lazy" />
+      <Image class="ficha__frasco" src={fotoDe(perfume.foto ?? perfume.id)} alt={`Frasco de ${perfume.nombre}`} width={560} format="webp" loading="lazy" />
       {esDecant && <span class="ficha__frasquitos"><Frasquitos /></span>}
     </div>
 

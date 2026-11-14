@@ -1,20 +1,15 @@
 ---
-// "Encuentra tu perfume": el cliente mueve tres controles y la web le recomienda 3 perfumes del catálogo.
-// Todas las tarjetas se generan aquí (con su foto optimizada); el script solo elige cuáles mostrar y en qué orden.
-import { Image } from 'astro:assets';
-import { frascos, decants } from '../data/perfumes';
-import { fotoDe } from '../data/fotos';
-
-const todos = [...frascos, ...decants];
-const notas = (p: (typeof todos)[number]) => [...p.ficha.salida, ...p.ficha.corazon, ...p.ficha.fondo].slice(0, 4).join(', ').toLowerCase();
+// "Encuentra tu perfume": el cliente mueve tres controles y la web le recomienda 3 perfumes de TODO el catálogo.
+// Los perfumes vienen de Supabase (los mismos del catálogo); la lógica para elegirlos está en scripts/recomendador.ts.
+import { WHATSAPP } from '../data/perfumes';
 ---
 
-<section id="encuentra" class="encuentra" aria-labelledby="encuentra-titulo">
+<section id="encuentra" class="encuentra" aria-labelledby="encuentra-titulo" data-whatsapp={WHATSAPP}>
   <div class="contenedor encuentra__grid">
     <div class="encuentra__controles">
       <p class="etiqueta">¿No sabes cuál elegir?</p>
       <h2 id="encuentra-titulo" class="encuentra__titulo">Encuentra tu perfume</h2>
-      <p class="encuentra__texto">Mueve los controles y te recomendamos tres de nuestra vitrina. Es como pedirnos consejo por WhatsApp, pero al instante.</p>
+      <p class="encuentra__texto">Mueve los controles y te recomendamos tres de entre más de 300 perfumes. Es como pedirnos consejo por WhatsApp, pero al instante.</p>
 
       <fieldset class="control">
         <legend class="etiqueta">Es para</legend>
@@ -51,45 +46,32 @@ const notas = (p: (typeof todos)[number]) => [...p.ficha.salida, ...p.ficha.cora
       <!-- La gota cambia de color: verde agua si es fresco, ámbar si es dulce, más oscura si es de noche. -->
       <div class="gota" aria-hidden="true"><span class="gota__brillo"></span></div>
       <p class="etiqueta encuentra__sub" aria-live="polite" data-resumen>Tus tres recomendados</p>
-      <ol class="recomendados" role="list" data-recomendados>
-        {todos.map((p) => {
-          const esDecant = p.tamanos.length > 1;
-          const desde = esDecant ? `Decant desde $${p.tamanos[0].precio}` : `$${p.tamanos[0].precio}`;
-          return (
-            <li
-              class="reco"
-              hidden
-              data-id={p.id}
-              data-para={p.para}
-              data-dulce={p.perfil.dulce}
-              data-fresco={p.perfil.fresco}
-              data-noche={p.perfil.noche}
-              data-precio={esDecant ? 0 : p.tamanos[0].precio}
-            >
-              <Image class="reco__foto" src={fotoDe(p.id)} alt="" width={160} format="webp" loading="lazy" />
-              <div class="reco__info">
-                <p class="reco__casa">{p.casa}</p>
-                <h3 class="reco__nombre">{p.nombre}</h3>
-                <p class="reco__notas">{notas(p)}</p>
-                <p class="reco__precio">{desde}</p>
-              </div>
-              <a class="reco__ver" href={`#${p.id}`}>Ver ficha</a>
-            </li>
-          );
-        })}
+      <ol class="recomendados" role="list" data-recomendados aria-busy="true">
+        {[0, 1, 2].map(() => (
+          <li class="reco reco--cargando" aria-hidden="true"><span class="reco__hueco"></span><span class="reco__rayas"><i></i><i></i></span></li>
+        ))}
       </ol>
+      <div class="encuentra__aviso" data-aviso hidden></div>
     </div>
   </div>
 </section>
 
 <script>
+  import { leerCatalogo, type PerfumeCatalogo } from '../scripts/supabase';
+  import { recomendar, type Criterios } from '../scripts/recomendador';
+  import { pedido } from '../scripts/pedido';
+  import { medir } from '../scripts/medir';
+  import { formatoUsd } from '../scripts/tasa';
+
   const seccion = document.querySelector<HTMLElement>('#encuentra')!;
-  const tarjetas = [...seccion.querySelectorAll<HTMLLIElement>('.reco')];
   const lista = seccion.querySelector<HTMLOListElement>('[data-recomendados]')!;
+  const aviso = seccion.querySelector<HTMLElement>('[data-aviso]')!;
   const gota = seccion.querySelector<HTMLElement>('.gota')!;
   const textoEstilo = seccion.querySelector<HTMLElement>('[data-texto-estilo]')!;
   const textoMomento = seccion.querySelector<HTMLElement>('[data-texto-momento]')!;
   const resumen = seccion.querySelector<HTMLElement>('[data-resumen]')!;
+  const WA = seccion.dataset.whatsapp!;
+  let catalogo: PerfumeCatalogo[] = [];
 
   const valor = (nombre: string) => {
     const el = seccion.querySelector<HTMLInputElement>(`[name="${nombre}"]:checked, input[type="range"][name="${nombre}"]`);
@@ -97,50 +79,103 @@ const notas = (p: (typeof todos)[number]) => [...p.ficha.salida, ...p.ficha.cora
     return el.value;
   };
   const mezcla = (a: number[], b: number[], t: number) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase?: string, texto?: string) {
+    const n = document.createElement(tag);
+    if (clase) n.className = clase;
+    if (texto !== undefined) n.textContent = texto;
+    return n;
+  }
+  const casa = (nombre: string) => nombre.split(' ')[0];
 
-  function recomendar() {
-    const estilo = Number(valor('estilo')) / 100; // 0 dulce · 1 fresco
-    const momento = Number(valor('momento')) / 100; // 0 día · 1 noche
-    const para = valor('para');
-    const tope = Number(valor('presupuesto'));
-
-    textoEstilo.textContent = estilo < 0.34 ? 'Dulce' : estilo > 0.66 ? 'Fresco' : 'Equilibrado';
-    textoMomento.textContent = momento < 0.34 ? 'De día' : momento > 0.66 ? 'De noche' : 'Todo el día';
-
-    // Color de la gota: del ámbar dulce al verde agua fresco, y más profundo de noche.
-    const base = mezcla([214, 150, 62], [120, 205, 190], estilo);
-    const color = mezcla(base, [70, 40, 20], momento * 0.45);
-    gota.style.setProperty('--gota', `rgb(${color.join(',')})`);
-
-    const objetivo = { dulce: (1 - estilo) * 10, fresco: estilo * 10, noche: momento * 10 };
-    const candidatos = tarjetas
-      .filter((t) => para === 'todos' || t.dataset.para === para || t.dataset.para === 'Unisex')
-      .filter((t) => !tope || Number(t.dataset.precio) <= tope)
-      .map((t) => {
-        const d = Number(t.dataset.dulce), f = Number(t.dataset.fresco), n = Number(t.dataset.noche);
-        const distancia = Math.abs(d - objetivo.dulce) + Math.abs(f - objetivo.fresco) + Math.abs(n - objetivo.noche) * 0.9;
-        return { t, distancia };
-      })
-      // Más allá de 16 puntos ya no se parece a lo que pidió: mejor mostrar menos que recomendar lo opuesto.
-      .filter(({ distancia }) => distancia <= 16)
-      .sort((a, b) => a.distancia - b.distancia)
-      .slice(0, 3);
-
-    tarjetas.forEach((t) => (t.hidden = true));
-    candidatos.forEach(({ t }, i) => {
-      t.hidden = false;
-      t.style.setProperty('--orden', String(i));
-      lista.append(t); // las tres elegidas quedan arriba y en orden
-    });
-    resumen.textContent =
-      candidatos.length === 3 ? 'Tus 3 recomendados'
-      : candidatos.length ? 'Lo que más se acerca a lo que buscas'
-      : 'No tenemos uno así en la vitrina. Prueba otra combinación o escríbenos.';
+  function criterios(): Criterios {
+    return {
+      para: valor('para') as Criterios['para'],
+      estilo: Number(valor('estilo')) / 100,
+      momento: Number(valor('momento')) / 100,
+      tope: Number(valor('presupuesto')),
+    };
   }
 
-  seccion.addEventListener('input', recomendar);
-  seccion.addEventListener('change', recomendar);
-  recomendar();
+  // Lo visual responde al instante aunque el catálogo todavía esté llegando
+  function pintarControles(c: Criterios) {
+    textoEstilo.textContent = c.estilo < 0.34 ? 'Dulce' : c.estilo > 0.66 ? 'Fresco' : 'Equilibrado';
+    textoMomento.textContent = c.momento < 0.34 ? 'De día' : c.momento > 0.66 ? 'De noche' : 'Todo el día';
+    // Color de la gota: del ámbar dulce al verde agua fresco, y más profundo de noche.
+    const base = mezcla([214, 150, 62], [120, 205, 190], c.estilo);
+    gota.style.setProperty('--gota', `rgb(${mezcla(base, [70, 40, 20], c.momento * 0.45).join(',')})`);
+  }
+
+  function tarjeta(p: PerfumeCatalogo, i: number) {
+    const li = el('li', 'reco');
+    li.style.setProperty('--orden', String(i));
+    const foto = el('span', 'reco__foto');
+    if (p.foto_url) {
+      const img = el('img'); img.src = p.foto_url; img.alt = ''; img.width = 88; img.height = 88; img.loading = 'lazy'; img.decoding = 'async';
+      foto.append(img);
+    } else foto.append(el('span', 'reco__marca', casa(p.nombre)));
+    const info = el('div', 'reco__info');
+    info.append(el('p', 'reco__casa', `${p.categoria} · ${p.estado === 'disponible' ? 'Disponible ya' : 'Por encargo'}`), el('h3', 'reco__nombre', p.nombre));
+    if (p.notas) info.append(el('p', 'reco__notas', p.notas.split('·').map((t) => t.trim()).filter(Boolean).slice(0, 2).join(' · ')));
+    info.append(el('p', 'reco__precio', formatoUsd(Number(p.precio_usd))));
+
+    const acciones = el('div', 'reco__acciones');
+    const agregar = el('button', 'reco__boton reco__boton--oro', 'Agregar'); agregar.type = 'button';
+    agregar.addEventListener('click', () => {
+      const tamano = p.estado === 'disponible' ? 'Frasco' : 'Frasco · por encargo (3 a 5 días)';
+      pedido.agregar({ id: `cat-${p.slug}`, nombre: p.nombre, casa: casa(p.nombre), tamano, precio: Number(p.precio_usd) });
+      medir('agregar', { perfume: p.nombre, detalle: 'recomendado' });
+      agregar.textContent = 'Agregado'; agregar.disabled = true;
+      setTimeout(() => { agregar.textContent = 'Agregar'; agregar.disabled = false; }, 1600);
+    });
+    const ver = el('button', 'reco__boton', 'Ver ficha'); ver.type = 'button';
+    ver.addEventListener('click', () => document.dispatchEvent(new CustomEvent('gh:ver-perfume', { detail: { slug: p.slug } })));
+    acciones.append(agregar, ver);
+    li.append(foto, info, acciones);
+    return li;
+  }
+
+  function mostrarAviso(texto: string, enlace?: string) {
+    aviso.replaceChildren(el('p', undefined, texto));
+    if (enlace) {
+      const a = el('a', 'reco__boton', 'Pedir consejo por WhatsApp');
+      a.href = `https://wa.me/${WA}?text=${encodeURIComponent(enlace)}`; a.target = '_blank'; a.rel = 'noopener';
+      aviso.append(a);
+    }
+    aviso.hidden = false;
+  }
+
+  function recomendarAhora() {
+    const c = criterios();
+    pintarControles(c);
+    if (!catalogo.length) return;
+    const elegidos = recomendar(catalogo, c);
+    lista.replaceChildren(...elegidos.map(tarjeta));
+    lista.removeAttribute('aria-busy');
+    aviso.hidden = true;
+    resumen.textContent = elegidos.length === 3 ? 'Tus 3 recomendados' : elegidos.length ? 'Lo que más se acerca a lo que buscas' : 'Tus recomendados';
+    if (!elegidos.length) mostrarAviso('Con ese presupuesto no tenemos uno así ahora. Prueba otra combinación o pídenos consejo.', 'Hola, Goldhour. ¿Me ayudan a elegir un perfume?');
+  }
+
+  async function cargar() {
+    try {
+      catalogo = await leerCatalogo();
+      recomendarAhora();
+    } catch (error) {
+      console.error('No se pudo cargar el catálogo para recomendar:', error);
+      lista.replaceChildren();
+      lista.removeAttribute('aria-busy');
+      mostrarAviso('No pudimos cargar las recomendaciones en este momento. Escríbenos y te recomendamos uno al instante.', 'Hola, Goldhour. ¿Me ayudan a elegir un perfume?');
+      const reintentar = el('button', 'reco__boton reco__boton--oro', 'Intentar de nuevo'); reintentar.type = 'button';
+      reintentar.addEventListener('click', () => { aviso.hidden = true; cargar(); });
+      aviso.append(reintentar);
+    }
+  }
+
+  seccion.addEventListener('input', recomendarAhora);
+  seccion.addEventListener('change', recomendarAhora);
+  pintarControles(criterios());
+  // El catálogo se pide cuando la sección se acerca a la pantalla, para no frenar la portada
+  new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); cargar(); } }, { rootMargin: '600px' }).observe(seccion);
 </script>
 
 <style>
@@ -196,7 +231,7 @@ const notas = (p: (typeof todos)[number]) => [...p.ficha.salida, ...p.ficha.cora
   .encuentra__sub { text-align: center; }
 
   .recomendados { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e-3); }
-  .reco {
+  .recomendados :global(.reco) {
     display: grid;
     grid-template-columns: 72px 1fr auto;
     gap: var(--e-4);
@@ -208,22 +243,38 @@ const notas = (p: (typeof todos)[number]) => [...p.ficha.salida, ...p.ficha.cora
     animation: reco-entra 0.45s var(--ease-salida) both;
     animation-delay: calc(var(--orden, 0) * 70ms);
   }
-  .reco[hidden] { display: none; }
+  .recomendados :global(.reco__foto) { width: 72px; height: 88px; display: grid; place-items: center; overflow: hidden; border-radius: var(--radio); background: #f4f1ec; }
+  .recomendados :global(.reco__foto img) { width: 100%; height: 100%; object-fit: contain; }
+  .recomendados :global(.reco__marca) { font-family: var(--serif); color: var(--oro-oscuro); }
+  .recomendados :global(.reco__acciones) { display: grid; gap: var(--e-2); }
+  .encuentra :global(.reco__boton) { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--e-4); border: 1px solid var(--linea); border-radius: var(--radio); background: none; color: var(--texto); font: inherit; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; white-space: nowrap; cursor: pointer; }
+  .encuentra :global(.reco__boton:hover) { border-color: var(--oro); color: var(--oro-claro); }
+  .encuentra :global(.reco__boton--oro) { background: var(--oro); border-color: var(--oro); color: var(--negro); }
+  .encuentra :global(.reco__boton--oro:hover) { background: var(--oro-claro); color: var(--negro); }
+  .encuentra :global(.reco__boton:disabled) { opacity: 0.7; cursor: default; }
+  .reco--cargando { min-height: 120px; }
+  .reco__hueco, .reco__rayas i { background: linear-gradient(90deg, #1d1b18 0%, #26231f 50%, #1d1b18 100%); background-size: 200% 100%; animation: brillo-reco 1.4s ease-in-out infinite; }
+  .reco__hueco { width: 72px; height: 88px; border-radius: var(--radio); }
+  .reco__rayas { display: grid; gap: var(--e-2); grid-column: 2 / -1; }
+  .reco__rayas i { display: block; height: 12px; border-radius: 2px; }
+  .reco__rayas i + i { width: 60%; }
+  @keyframes brillo-reco { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .reco__hueco, .reco__rayas i { animation: none; } }
+  .encuentra__aviso { display: grid; gap: var(--e-3); justify-items: center; text-align: center; color: var(--texto-2); }
+  .encuentra__aviso[hidden] { display: none; }
+  .encuentra__aviso p { margin: 0; }
   @keyframes reco-entra { from { opacity: 0; transform: translateY(10px); } }
-  @media (prefers-reduced-motion: reduce) { .reco { animation: none; } }
-  .reco :global(.reco__foto) { width: 72px; height: 88px; object-fit: contain; filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.5)); }
-  .reco__casa { margin: 0; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--oro); }
-  .reco__nombre { margin: 2px 0; font-family: var(--serif); font-size: 1.25rem; font-weight: 500; color: var(--blanco); line-height: 1.2; }
-  .reco__notas { margin: 0; font-size: 0.8125rem; color: var(--texto-2); }
-  .reco__precio { margin: var(--e-1) 0 0; font-family: var(--serif); color: var(--oro-claro); }
-  .reco__ver { min-height: 44px; display: inline-flex; align-items: center; padding: 0 var(--e-4); border: 1px solid var(--linea); border-radius: var(--radio); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
-  .reco__ver:hover { border-color: var(--oro); color: var(--oro-claro); }
+  @media (prefers-reduced-motion: reduce) { .recomendados :global(.reco) { animation: none; } }
+  .recomendados :global(.reco__casa) { margin: 0; font-size: 0.75rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--oro); }
+  .recomendados :global(.reco__nombre) { margin: 2px 0; font-family: var(--serif); font-size: 1.25rem; font-weight: 500; color: var(--blanco); line-height: 1.2; }
+  .recomendados :global(.reco__notas) { margin: 0; font-size: 0.8125rem; color: var(--texto-2); }
+  .recomendados :global(.reco__precio) { margin: var(--e-1) 0 0; font-family: var(--serif); color: var(--oro-claro); }
 
   @media (max-width: 767px) {
     .encuentra { padding-block: var(--e-8); }
     .encuentra__grid { grid-template-columns: 1fr; gap: var(--e-6); }
-    .reco { grid-template-columns: 56px 1fr; }
-    .reco :global(.reco__foto) { width: 56px; height: 72px; }
-    .reco__ver { grid-column: 1 / -1; justify-content: center; }
+    .recomendados :global(.reco) { grid-template-columns: 64px 1fr; }
+    .recomendados :global(.reco__foto) { width: 64px; height: 80px; }
+    .recomendados :global(.reco__acciones) { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
   }
 </style>

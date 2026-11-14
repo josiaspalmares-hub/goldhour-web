@@ -4,6 +4,11 @@ import Ficha from './Ficha.astro';
 import { frascos } from '../data/perfumes';
 import { fotoDe } from '../data/fotos';
 
+// En "Todos" se alternan los de él y los de ella para que la vitrina se vea pareja
+const deEl = frascos.filter((p) => p.para !== 'Ella');
+const deElla = frascos.filter((p) => p.para === 'Ella');
+const vitrina = Array.from({ length: Math.max(deEl.length, deElla.length) }, (_, i) => [deEl[i], deElla[i]]).flat().filter((p) => p !== undefined);
+
 const filtros = [
   { valor: 'todos', texto: 'Todos' },
   { valor: 'Él', texto: 'Para él' },
@@ -16,8 +21,9 @@ const filtros = [
   <div class="contenedor">
     <header class="vitrina__cabeza">
       <div>
-        <p class="etiqueta">La vitrina</p>
-        <h2 id="vitrina-titulo" class="vitrina__titulo">{frascos.length} frascos originales y sellados</h2>
+        <p class="etiqueta">Recomendados por Goldhour</p>
+        <h2 id="vitrina-titulo" class="vitrina__titulo">Nuestros {frascos.length} favoritos</h2>
+        <p class="vitrina__texto">Los que más nos piden y más recomendamos: {deEl.length} para él y {deElla.length} para ella, originales y sellados.</p>
       </div>
       <div class="vitrina__filtros" role="group" aria-label="Filtrar por">
         {filtros.map((f, i) => (
@@ -27,12 +33,12 @@ const filtros = [
     </header>
 
     <ul class="vitrina__lista" role="list">
-      {frascos.map((p) => {
+      {vitrina.map((p) => {
         const tamano = p.tamanos[0];
         return (
           <li class="tarjeta" id={p.id} data-para={p.para} data-producto>
             <button type="button" class="tarjeta__foto" data-abrir-ficha={p.id} aria-label={`Ver la ficha de ${p.nombre}`}>
-              <Image src={fotoDe(p.id)} alt="" width={420} format="webp" loading="lazy" />
+              <Image src={fotoDe(p.foto ?? p.id)} alt="" width={420} format="webp" loading="lazy" />
             </button>
             <p class="etiqueta tarjeta__casa">{p.casa}</p>
             <h3 class="tarjeta__nombre">{p.nombre}</h3>
@@ -103,6 +109,7 @@ const filtros = [
 
   .vitrina__cabeza { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: var(--e-5); margin-bottom: var(--e-7); }
   .vitrina__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); margin: var(--e-3) 0 0; line-height: 1.05; max-width: 14ch; }
+  .vitrina__texto { margin: var(--e-3) 0 0; color: var(--texto-2); max-width: 34rem; }
 
   .vitrina__filtros { display: flex; flex-wrap: wrap; gap: var(--e-2); }
   .vitrina__filtro {
