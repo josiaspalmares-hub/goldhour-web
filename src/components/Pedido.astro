@@ -84,6 +84,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
 </button>
 
 <script>
+  import { medir } from '../scripts/medir';
   import { pedido } from '../scripts/pedido';
   import { obtenerTasaEuro, formatoBs, formatoUsd, TasaNoDisponible } from '../scripts/tasa';
 
@@ -102,6 +103,8 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
   const bloqueTotal = $<HTMLElement>('[data-pedido-total]');
   const enviar = $<HTMLAnchorElement>('[data-enviar-pedido]');
   const barra = document.querySelector<HTMLButtonElement>('.barra-pedido')!;
+  // Cada perfume del pedido cuenta como un clic a WhatsApp, para saber cuáles se piden de verdad
+  enviar.addEventListener('click', () => pedido.lineas().forEach((l) => medir('whatsapp', { perfume: l.nombre, detalle: l.tamano })));
 
   function abrir() {
     pintar();

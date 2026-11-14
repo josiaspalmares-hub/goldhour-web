@@ -1,0 +1,500 @@
+---
+// Panel privado de los socios: medición de la web y cambios al catálogo. Estilo claro "vidrio líquido" en crema y oro.
+import Base from '../layouts/Base.astro';
+import monograma from '../assets/marca/monograma-G-oro.svg';
+---
+
+<Base titulo="Panel de socios · Goldhour" descripcion="Panel privado de Goldhour." noindex colorTema="#efe6d6">
+  <div class="fondo" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <div class="panel-app">
+    <!-- Cargando -->
+    <section class="pantalla pantalla--centro" data-pantalla="cargando">
+      <p class="cargando-texto" role="status">Abriendo el panel…</p>
+    </section>
+
+    <!-- Entrar -->
+    <section class="pantalla pantalla--centro" data-pantalla="entrar" hidden>
+      <form class="vidrio entrar" data-form-entrar novalidate>
+        <img src={monograma.src} width="44" height="47" alt="" />
+        <p class="rotulo">Goldhour · Socios</p>
+        <h1 class="entrar__titulo" data-entrar-titulo>Entra al panel</h1>
+        <label class="campo-grupo">
+          <span>Correo</span>
+          <input class="campo" name="correo" type="email" autocomplete="email" required maxlength="160" />
+        </label>
+        <label class="campo-grupo">
+          <span>Contraseña</span>
+          <input class="campo" name="clave" type="password" autocomplete="current-password" required minlength="8" maxlength="72" />
+        </label>
+        <p class="entrar__error" data-entrar-error role="alert"></p>
+        <button class="boton-oro" type="submit" data-entrar-boton>Entrar</button>
+        <a class="enlace" href="/">Volver a la tienda</a>
+      </form>
+    </section>
+
+    <!-- Cuenta sin permiso de socio -->
+    <section class="pantalla pantalla--centro" data-pantalla="sin-acceso" hidden>
+      <div class="vidrio entrar">
+        <img src={monograma.src} width="44" height="47" alt="" />
+        <h1 class="entrar__titulo">Tu cuenta aún no está activada</h1>
+        <p class="texto-2">Entraste como <strong data-sin-acceso-correo></strong>. Para ver el panel, un socio tiene que agregarte en la sección Logins.</p>
+        <button class="boton-vidrio" type="button" data-salir>Salir</button>
+      </div>
+    </section>
+
+    <!-- Panel -->
+    <div class="pantalla panel" data-pantalla="panel" hidden>
+      <aside class="vidrio menu">
+        <a class="menu__marca" href="/panel" data-ir="resumen">
+          <img src={monograma.src} width="32" height="34" alt="" />
+          <span>Goldhour<small>Socios</small></span>
+        </a>
+        <nav class="menu__nav" aria-label="Secciones del panel">
+          <a href="/panel" data-ir="resumen">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V10M10 19V5M16 19v-7M22 19H2" /></svg>Resumen
+          </a>
+          <a href="/panel#perfumes" data-ir="perfumes">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v3h4V3M7 9a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z" /></svg>Perfumes
+          </a>
+          <a href="/panel#logins" data-ir="logins">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 8v6M14 11h6" /></svg>Logins
+          </a>
+          <a href="/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>Ver la tienda
+          </a>
+        </nav>
+        <button class="menu__salir" type="button" data-salir>Salir</button>
+      </aside>
+
+      <main class="contenido">
+        <!-- Resumen -->
+        <section data-vista="resumen" aria-labelledby="t-resumen">
+          <header class="cabeza">
+            <div>
+              <p class="rotulo" data-hola>Hola</p>
+              <h1 id="t-resumen">Qué está funcionando</h1>
+            </div>
+            <div class="periodo" role="group" aria-label="Período">
+              <button type="button" data-dias="7" aria-pressed="true">7 días</button>
+              <button type="button" data-dias="30" aria-pressed="false">30 días</button>
+              <button type="button" data-dias="90" aria-pressed="false">90 días</button>
+            </div>
+          </header>
+
+          <div class="zona" data-resumen data-estado="cargando">
+            <p class="vidrio nota nota--error" role="alert">
+              No se pudieron traer los números. Revisa tu conexión.
+              <button class="boton-vidrio boton-vidrio--chico" type="button" data-resumen-reintentar>Reintentar</button>
+            </p>
+            <p class="vidrio nota nota--vacio">
+              Todavía no hay datos en este período. Cuando la gente entre a la web, aquí vas a ver qué perfumes miran, qué
+              buscan y cuántos terminan escribiendo por WhatsApp.
+            </p>
+
+            <ul class="kpis">
+              <li class="vidrio kpi"><span class="kpi__nombre">Visitas</span><span class="kpi__valor" data-kpi="visitas">0</span><span class="kpi__ayuda">personas distintas</span></li>
+              <li class="vidrio kpi"><span class="kpi__nombre">Perfumes vistos</span><span class="kpi__valor" data-kpi="vistas">0</span><span class="kpi__ayuda">fichas abiertas</span></li>
+              <li class="vidrio kpi"><span class="kpi__nombre">Búsquedas</span><span class="kpi__valor" data-kpi="busquedas">0</span><span class="kpi__ayuda">en el catálogo</span></li>
+              <li class="vidrio kpi"><span class="kpi__nombre">Agregados</span><span class="kpi__valor" data-kpi="agregados">0</span><span class="kpi__ayuda">al pedido</span></li>
+              <li class="vidrio kpi"><span class="kpi__nombre">WhatsApp</span><span class="kpi__valor" data-kpi="whatsapp">0</span><span class="kpi__ayuda">perfumes pedidos</span></li>
+              <li class="vidrio kpi kpi--oro"><span class="kpi__nombre">De visita a pedido</span><span class="kpi__valor" data-kpi="conversion">—</span><span class="kpi__ayuda">visitas que escriben</span></li>
+            </ul>
+
+            <article class="vidrio tarjeta-grafica">
+              <header>
+                <h2>Visitas y pedidos por día</h2>
+                <ul class="leyenda">
+                  <li><i class="leyenda__linea"></i>Visitas</li>
+                  <li><i class="leyenda__barra"></i>WhatsApp</li>
+                </ul>
+              </header>
+              <div class="grafica" data-grafica></div>
+            </article>
+
+            <div class="tops">
+              <article class="vidrio top"><h2>Más vistos</h2><ol data-top="vistos"></ol></article>
+              <article class="vidrio top"><h2>Más pedidos</h2><ol data-top="pedidos"></ol></article>
+              <article class="vidrio top"><h2>Lo que más buscan</h2><ol data-top="busquedas"></ol></article>
+            </div>
+            <p class="actualizado" data-actualizado></p>
+          </div>
+        </section>
+
+        <!-- Perfumes -->
+        <section data-vista="perfumes" aria-labelledby="t-perfumes" hidden>
+          <header class="cabeza">
+            <div>
+              <p class="rotulo">Catálogo</p>
+              <h1 id="t-perfumes">Perfumes</h1>
+            </div>
+            <button class="boton-oro" type="button" data-abrir-nuevo>Nuevo perfume</button>
+          </header>
+
+          <div class="zona" data-perfumes data-estado="cargando">
+            <ul class="cuentas">
+              <li class="vidrio"><span data-cuenta="total">0</span>en total</li>
+              <li class="vidrio"><span data-cuenta="disponible">0</span><i class="punto punto--disponible"></i>disponibles</li>
+              <li class="vidrio"><span data-cuenta="encargo">0</span><i class="punto punto--encargo"></i>por encargo</li>
+              <li class="vidrio"><span data-cuenta="agotado">0</span><i class="punto punto--agotado"></i>agotados</li>
+            </ul>
+
+            <div class="vidrio barra-p">
+              <label class="buscar">
+                <span class="visualmente-oculto">Buscar perfume</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                <input class="campo" type="search" placeholder="Buscar por nombre…" data-p-buscar maxlength="80" />
+              </label>
+              <label>
+                <span class="visualmente-oculto">Filtrar por estado</span>
+                <select class="campo" data-p-estado>
+                  <option value="todos">Todos los estados</option>
+                  <option value="disponible">Disponibles</option>
+                  <option value="encargo">Por encargo</option>
+                  <option value="agotado">Agotados</option>
+                </select>
+              </label>
+              <span class="barra-p__total" data-p-total></span>
+            </div>
+
+            <p class="vidrio nota nota--error" role="alert">
+              No se pudo traer el catálogo. Revisa tu conexión.
+              <button class="boton-vidrio boton-vidrio--chico" type="button" data-p-reintentar>Reintentar</button>
+            </p>
+            <p class="cargando-texto nota--cargando" role="status">Cargando perfumes…</p>
+            <ul class="p-lista" data-p-lista></ul>
+            <p class="vidrio nota" data-p-vacio hidden>Ningún perfume coincide con esa búsqueda.</p>
+            <button class="boton-vidrio p-mas" type="button" data-p-mas hidden>Ver más</button>
+          </div>
+        </section>
+
+        <!-- Logins -->
+        <section data-vista="logins" aria-labelledby="t-logins" hidden>
+          <header class="cabeza">
+            <div>
+              <p class="rotulo">Acceso al panel</p>
+              <h1 id="t-logins">Logins</h1>
+            </div>
+            <button class="boton-oro" type="button" data-abrir-login>Agregar login</button>
+          </header>
+          <div class="zona" data-logins data-estado="cargando">
+            <p class="vidrio nota nota--error" role="alert">
+              <span data-logins-error>No se pudieron traer los logins. Revisa tu conexión.</span>
+              <button class="boton-vidrio boton-vidrio--chico" type="button" data-logins-reintentar>Reintentar</button>
+            </p>
+            <p class="cargando-texto nota--cargando" role="status">Cargando logins…</p>
+            <p class="texto-2">Cada login entra con su correo y contraseña y ve todo el panel. Puedes cambiar la contraseña, pausarlo o borrarlo cuando quieras.</p>
+            <ul class="l-lista" data-l-lista></ul>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <dialog class="vidrio nuevo" data-login-dialogo aria-labelledby="t-login">
+    <form data-form-login novalidate>
+      <h2 id="t-login" data-login-titulo>Agregar login</h2>
+      <label class="campo-grupo campo-grupo--ancho" data-login-campo="nombre"><span>Nombre</span>
+        <input class="campo" name="nombre" maxlength="60" autocomplete="off" placeholder="María Pérez" /></label>
+      <label class="campo-grupo campo-grupo--ancho" data-login-campo="correo"><span>Correo</span>
+        <input class="campo" name="correo" type="email" maxlength="160" autocomplete="off" /></label>
+      <label class="campo-grupo campo-grupo--ancho" data-login-campo="clave"><span>Contraseña (mínimo 8)</span>
+        <input class="campo" name="clave" type="password" minlength="8" maxlength="72" autocomplete="new-password" /></label>
+      <p class="entrar__error campo-grupo--ancho" data-login-error role="alert"></p>
+      <div class="nuevo__botones campo-grupo--ancho">
+        <button class="boton-vidrio" type="button" data-cerrar-login>Cancelar</button>
+        <button class="boton-oro" type="submit" data-login-guardar>Agregar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="vidrio nuevo" data-nuevo aria-labelledby="t-nuevo">
+    <form data-form-nuevo novalidate>
+      <h2 id="t-nuevo">Nuevo perfume</h2>
+      <label class="campo-grupo campo-grupo--ancho"><span>Nombre completo</span>
+        <input class="campo" name="nombre" required minlength="2" maxlength="160" placeholder="Lattafa Khamrah Eau de Parfum 100 ml" /></label>
+      <label class="campo-grupo"><span>Para</span>
+        <select class="campo" name="categoria"><option>Caballero</option><option>Dama</option><option>Unisex</option></select></label>
+      <label class="campo-grupo"><span>Precio ($)</span>
+        <input class="campo" name="precio" type="number" min="1" max="9999" step="0.5" required /></label>
+      <label class="campo-grupo"><span>Estado</span>
+        <select class="campo" name="estado"><option value="encargo">Por encargo</option><option value="disponible">Disponible</option><option value="agotado">Agotado</option></select></label>
+      <label class="campo-grupo"><span>Familia olfativa</span>
+        <input class="campo" name="familia" maxlength="80" placeholder="Oriental especiado" /></label>
+      <label class="campo-grupo campo-grupo--ancho"><span>Notas principales</span>
+        <input class="campo" name="notas" maxlength="300" placeholder="Canela, dátil, praliné, vainilla" /></label>
+      <label class="p-destacado campo-grupo--ancho"><input type="checkbox" name="destacado" /><span>Mostrar primero en el catálogo</span></label>
+      <p class="entrar__error campo-grupo--ancho" data-nuevo-error role="alert"></p>
+      <div class="nuevo__botones campo-grupo--ancho">
+        <button class="boton-vidrio" type="button" data-cerrar-nuevo>Cancelar</button>
+        <button class="boton-oro" type="submit">Agregar al catálogo</button>
+      </div>
+    </form>
+  </dialog>
+
+  <p class="aviso" data-aviso role="status" aria-live="polite"></p>
+</Base>
+
+<script>
+  import { SupabaseNoConfigurado } from '../scripts/supabase';
+  import('../scripts/panel')
+    .then((m) => m.iniciarPanel())
+    .catch((error) => {
+      if (!(error instanceof SupabaseNoConfigurado)) throw error;
+      document.querySelector('.cargando-texto')!.textContent = 'El panel no está configurado todavía (faltan los datos de Supabase).';
+    });
+</script>
+
+<style is:global>
+  /* Solo existe en /panel. Tonos de la marca sobre crema: marfil, oro, tinta. */
+  :root {
+    --c-fondo: #efe6d6;
+    --c-tinta: #1f1a14;
+    --c-texto-2: #62574a; /* 5.6:1 sobre el crema */
+    --c-vidrio: rgba(255, 251, 243, 0.56);
+    --c-vidrio-borde: rgba(255, 255, 255, 0.78);
+    --c-sombra: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 18px 40px -22px rgba(122, 90, 30, 0.35);
+    --c-radio: 22px;
+    --c-verde: #3f7d4e;
+    --c-ambar: #a46a12;
+    --c-rojo: #a23b2a;
+  }
+  body { background: var(--c-fondo); color: var(--c-tinta); min-height: 100vh; }
+  body::after { opacity: 0.035; mix-blend-mode: multiply; }
+  [hidden] { display: none !important; }
+
+  /* Manchas de color borrosas detrás del vidrio */
+  .fondo { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .fondo span { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.75; animation: deriva 28s ease-in-out infinite alternate; }
+  .fondo span:nth-child(1) { width: 46vw; height: 46vw; left: -10vw; top: -14vw; background: #e6cb82; }
+  .fondo span:nth-child(2) { width: 38vw; height: 38vw; right: -8vw; top: 18vh; background: #e9bf9a; animation-delay: -9s; }
+  .fondo span:nth-child(3) { width: 42vw; height: 42vw; left: 30vw; bottom: -22vw; background: #d8c3a0; animation-delay: -17s; }
+  @keyframes deriva { to { transform: translate3d(4vw, 3vw, 0) scale(1.08); } }
+  @media (prefers-reduced-motion: reduce) { .fondo span { animation: none; } }
+
+  .panel-app { position: relative; z-index: 1; }
+  .pantalla--centro { min-height: 100vh; display: grid; place-items: center; padding: var(--e-5) 16px; }
+
+  .vidrio {
+    background: var(--c-vidrio);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid var(--c-vidrio-borde);
+    border-radius: var(--c-radio);
+    box-shadow: var(--c-sombra);
+  }
+
+  .rotulo { margin: 0; font-size: var(--t-chico); font-weight: 500; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: #5e4310; }
+  .texto-2 { color: var(--c-texto-2); margin: 0; line-height: 1.6; }
+  .cargando-texto { color: var(--c-texto-2); letter-spacing: 0.06em; }
+
+  /* Campos y botones */
+  .campo {
+    width: 100%; min-height: 44px; padding: 0 14px;
+    font: inherit; font-size: 0.9375rem; color: var(--c-tinta);
+    background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(122, 90, 30, 0.22); border-radius: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .campo:focus { outline: none; border-color: var(--oro); box-shadow: 0 0 0 3px rgba(201, 165, 92, 0.3); }
+  .campo-grupo { display: grid; gap: 6px; font-size: 0.8125rem; color: var(--c-texto-2); }
+  .boton-oro, .boton-vidrio {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 44px; padding: 0 22px; border-radius: 999px;
+    font: inherit; font-size: 0.875rem; font-weight: 500; letter-spacing: 0.04em; cursor: pointer;
+    transition: transform 0.15s var(--ease-salida), background-color 0.2s, opacity 0.2s;
+  }
+  .boton-oro { background: var(--c-tinta); color: #f7eedb; border: 1px solid var(--c-tinta); }
+  .boton-oro:hover { background: #3a2f22; }
+  .boton-vidrio { background: rgba(255, 255, 255, 0.6); color: var(--c-tinta); border: 1px solid var(--c-vidrio-borde); }
+  .boton-vidrio:hover { background: rgba(255, 255, 255, 0.85); }
+  .boton-oro:active, .boton-vidrio:active { transform: scale(0.97); }
+  .boton-oro:disabled { opacity: 0.35; cursor: default; transform: none; }
+  .boton-oro--chico, .boton-vidrio--chico { min-height: 38px; padding: 0 16px; font-size: 0.8125rem; white-space: nowrap; }
+  .boton-vidrio:focus-within { outline: 2px solid var(--oro); outline-offset: 2px; }
+  .enlace { background: none; border: 0; padding: 8px; font: inherit; font-size: 0.875rem; color: var(--c-texto-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .enlace:hover { color: var(--c-tinta); }
+
+  /* Entrar */
+  .entrar { width: min(400px, 100%); padding: 36px 32px; display: grid; gap: 16px; justify-items: stretch; text-align: left; }
+  .entrar img { justify-self: start; }
+  .entrar__titulo { margin: 0 0 4px; font-family: var(--serif); font-weight: 500; font-size: 2rem; line-height: 1.1; color: var(--c-tinta); }
+  .entrar__error { margin: 0; min-height: 1.2em; font-size: 0.875rem; color: var(--c-rojo); }
+  .entrar .enlace { justify-self: center; padding-block: 4px; }
+
+  /* Estructura del panel */
+  .panel { display: grid; grid-template-columns: 248px minmax(0, 1fr); gap: 20px; padding: 20px; min-height: 100vh; }
+  .menu { position: sticky; top: 20px; height: calc(100vh - 40px); padding: 22px 14px; display: flex; flex-direction: column; gap: 28px; }
+  .menu__marca { display: flex; align-items: center; gap: 12px; padding: 0 10px; text-decoration: none; color: var(--c-tinta); }
+  .menu__marca span { font-family: var(--serif); font-size: 1.25rem; line-height: 1; display: grid; gap: 4px; }
+  .menu__marca small { font-family: var(--sans); font-size: 0.6875rem; letter-spacing: 0.2em; text-transform: uppercase; color: #5e4310; }
+  .menu__nav { display: grid; gap: 4px; }
+  .menu__nav a { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 14px; border-radius: 14px; text-decoration: none; color: var(--c-texto-2); font-size: 0.9375rem; transition: background-color 0.2s, color 0.2s; }
+  .menu__nav a:hover { background: rgba(255, 255, 255, 0.5); color: var(--c-tinta); }
+  .menu__nav a[aria-current='page'] { background: rgba(255, 255, 255, 0.85); color: var(--c-tinta); box-shadow: 0 6px 18px -10px rgba(122, 90, 30, 0.45); }
+  .menu__nav svg, .buscar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .menu__salir { margin-top: auto; min-height: 44px; border-radius: 14px; border: 1px solid rgba(122, 90, 30, 0.2); background: transparent; font: inherit; font-size: 0.875rem; color: var(--c-texto-2); cursor: pointer; }
+  .menu__salir:hover { background: rgba(255, 255, 255, 0.5); color: var(--c-tinta); }
+
+  .contenido { min-width: 0; padding: 12px 8px 40px; }
+  .cabeza { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .cabeza h1 { margin: 6px 0 0; font-family: var(--serif); font-weight: 500; font-size: clamp(2rem, 1.4rem + 2vw, 3rem); line-height: 1.05; color: var(--c-tinta); }
+
+  .periodo { display: inline-flex; padding: 4px; gap: 2px; border-radius: 999px; background: rgba(255, 255, 255, 0.45); border: 1px solid var(--c-vidrio-borde); }
+  .periodo button { min-height: 38px; padding: 0 16px; border-radius: 999px; border: 0; background: transparent; font: inherit; font-size: 0.8125rem; color: var(--c-texto-2); cursor: pointer; transition: background-color 0.2s, color 0.2s; }
+  .periodo button[aria-pressed='true'] { background: var(--c-tinta); color: #f7eedb; }
+
+  /* Estados de cada zona */
+  .zona { display: grid; gap: 20px; }
+  .nota { margin: 0; padding: 18px 22px; color: var(--c-texto-2); line-height: 1.6; display: none; }
+  .nota button { margin-left: 8px; }
+  .zona[data-estado='error'] .nota--error, .zona[data-estado='vacio'] .nota--vacio { display: block; }
+  .nota[data-p-vacio] { display: block; }
+  .nota--cargando { display: none; margin: 0; }
+  .zona[data-estado='cargando'] .nota--cargando { display: block; }
+  .zona[data-estado='error'] > :not(.nota--error) { display: none; }
+  .zona[data-estado='cargando'] .kpi__valor { opacity: 0.25; }
+
+  /* KPIs */
+  .kpis { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+  .kpi { padding: 18px 20px 16px; display: grid; gap: 2px; align-content: start; }
+  .kpi__nombre { font-size: 0.8125rem; color: var(--c-texto-2); }
+  .kpi__valor { font-family: var(--serif); font-size: clamp(2.25rem, 1.8rem + 1.2vw, 3rem); line-height: 1.1; color: var(--c-tinta); font-variant-numeric: lining-nums tabular-nums; transition: opacity 0.3s; }
+  .kpi__ayuda { font-size: 0.75rem; color: var(--c-texto-2); }
+  .kpi--oro { background: linear-gradient(150deg, rgba(240, 214, 150, 0.85), rgba(214, 176, 98, 0.75)); border-color: rgba(255, 244, 214, 0.9); }
+  .kpi--oro .kpi__nombre, .kpi--oro .kpi__ayuda { color: #4a3812; }
+
+  /* Gráfica */
+  .tarjeta-grafica { padding: 20px 22px 14px; }
+  .tarjeta-grafica header, .top h2 { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tarjeta-grafica h2, .top h2 { margin: 0; font-size: 1rem; font-weight: 500; color: var(--c-tinta); }
+  .leyenda { list-style: none; margin: 0; padding: 0; display: flex; gap: 16px; font-size: 0.8125rem; color: var(--c-texto-2); }
+  .leyenda li { display: flex; align-items: center; gap: 6px; }
+  .leyenda__linea { width: 16px; height: 3px; border-radius: 2px; background: var(--oro); }
+  .leyenda__barra { width: 8px; height: 12px; border-radius: 4px; background: var(--c-tinta); }
+  .grafica { margin-top: 10px; }
+  .grafica svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .grafica__guia { stroke: rgba(122, 90, 30, 0.14); stroke-dasharray: 3 5; }
+  .grafica__eje { font-size: 11px; fill: var(--c-texto-2); font-family: var(--sans); }
+  .grafica__linea { fill: none; stroke: #b48b3c; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+  .grafica__barra { fill: var(--c-tinta); opacity: 0.85; }
+
+  /* Listas de lo más visto, pedido y buscado */
+  .tops { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .top { padding: 20px 22px; }
+  .top ol { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
+  .top__fila { position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 10px; font-size: 0.875rem; overflow: hidden; }
+  .top__barra { position: absolute; inset: 0; background: rgba(201, 165, 92, 0.22); transform-origin: left; transform: scaleX(var(--p)); border-radius: inherit; }
+  .top__texto { position: relative; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top__veces { position: relative; font-variant-numeric: tabular-nums; color: var(--c-texto-2); }
+  .top__vacio { font-size: 0.875rem; color: var(--c-texto-2); }
+  .actualizado { margin: 0; font-size: 0.75rem; color: var(--c-texto-2); text-align: right; }
+
+  /* Perfumes */
+  .cuentas { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+  .cuentas li { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-size: 0.8125rem; color: var(--c-texto-2); }
+  .cuentas span { font-family: var(--serif); font-size: 1.25rem; color: var(--c-tinta); }
+  .punto { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .punto--disponible { background: var(--c-verde); }
+  .punto--encargo { background: var(--c-ambar); }
+  .punto--agotado { background: var(--c-rojo); }
+
+  .barra-p { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px; border-radius: 18px; }
+  .buscar { flex: 1 1 260px; position: relative; }
+  .buscar svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--c-texto-2); }
+  .buscar .campo { padding-left: 40px; }
+  .barra-p select { min-width: 190px; }
+  .barra-p__total { padding: 0 8px; font-size: 0.8125rem; color: var(--c-texto-2); white-space: nowrap; }
+
+  .p-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .p-fila {
+    display: grid; grid-template-columns: 56px minmax(0, 1fr) 100px 150px auto; align-items: center; gap: 14px;
+    padding: 10px 14px 10px 10px; border-radius: 18px;
+    background: rgba(255, 251, 243, 0.5); border: 1px solid rgba(255, 255, 255, 0.7);
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+  .p-fila--sucia { background: rgba(255, 246, 222, 0.85); border-color: rgba(201, 165, 92, 0.7); }
+  .p-foto { width: 56px; height: 56px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: linear-gradient(160deg, #2a2520, #15130f); }
+  .p-foto img { width: 100%; height: 100%; object-fit: cover; }
+  .p-foto__marca { font-family: var(--serif); font-size: 1.5rem; color: var(--oro-claro); }
+  .p-fila__info { display: grid; gap: 2px; min-width: 0; }
+  .p-fila__nombre { font-size: 0.9375rem; color: var(--c-tinta); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .p-fila__meta { font-size: 0.75rem; color: var(--c-texto-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .campo--precio { text-align: right; font-variant-numeric: tabular-nums; }
+  .campo--estado { padding-left: 28px; background-repeat: no-repeat; background-position: 12px 50%; background-size: 8px 8px; }
+  .campo--estado[data-valor='disponible'] { background-image: radial-gradient(circle, var(--c-verde) 70%, transparent 72%); }
+  .campo--estado[data-valor='encargo'] { background-image: radial-gradient(circle, var(--c-ambar) 70%, transparent 72%); }
+  .campo--estado[data-valor='agotado'] { background-image: radial-gradient(circle, var(--c-rojo) 70%, transparent 72%); }
+  .p-fila__acciones { display: flex; align-items: center; gap: 8px; }
+  .p-destacado { display: inline-flex; align-items: center; gap: 8px; min-height: 38px; font-size: 0.8125rem; color: var(--c-texto-2); cursor: pointer; }
+  .p-destacado input { width: 18px; height: 18px; accent-color: var(--c-tinta); }
+  .p-mas { justify-self: center; }
+
+  /* Logins */
+  .l-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .l-fila { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 16px; }
+  .l-avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: var(--serif); font-size: 1.25rem; color: #f7eedb; background: linear-gradient(160deg, #3a2f22, #15130f); }
+  .l-info { display: grid; gap: 2px; min-width: 0; }
+  .l-nombre { font-size: 0.9375rem; color: var(--c-tinta); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .l-correo, .l-meta { font-size: 0.8125rem; color: var(--c-texto-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .l-chip { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: rgba(63, 125, 78, 0.14); color: #2d5e39; }
+  .l-chip--pausado { background: rgba(162, 59, 42, 0.12); color: #8a2f20; }
+  .l-chip--yo { background: rgba(201, 165, 92, 0.25); color: #5e4310; }
+  .l-acciones { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .boton-peligro { color: var(--c-rojo); }
+  .boton-peligro:hover { background: rgba(162, 59, 42, 0.1); }
+  .l-fila--pausada .l-avatar { opacity: 0.45; }
+
+  /* Nuevo perfume */
+  .nuevo { width: min(620px, calc(100vw - 32px)); padding: 0; color: var(--c-tinta); background: rgba(255, 250, 240, 0.86); }
+  .nuevo::backdrop { background: rgba(60, 44, 20, 0.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .nuevo form { padding: 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .nuevo h2 { grid-column: 1 / -1; margin: 0 0 4px; font-family: var(--serif); font-weight: 500; font-size: 1.75rem; }
+  .campo-grupo--ancho { grid-column: 1 / -1; }
+  .nuevo__botones { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+
+  .aviso {
+    position: fixed; left: 50%; bottom: 24px; z-index: 50; margin: 0; max-width: calc(100vw - 32px);
+    padding: 12px 20px; border-radius: 999px; font-size: 0.875rem;
+    background: var(--c-tinta); color: #f7eedb; box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.45);
+    opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: opacity 0.25s, transform 0.25s var(--ease-salida);
+  }
+  .aviso.visible { opacity: 1; transform: translate(-50%, 0); }
+  .aviso[data-tipo='error'] { background: var(--c-rojo); color: #fff; }
+
+  /* Tablet: el menú pasa arriba */
+  @media (max-width: 1023px) {
+    .panel { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
+    .menu { position: sticky; top: 12px; z-index: 5; height: auto; flex-direction: row; align-items: center; gap: 8px; padding: 8px 8px 8px 14px; border-radius: 20px; }
+    .menu__marca { padding: 0; }
+    .menu__marca span { display: none; }
+    .menu__nav { display: flex; flex: 1; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    .menu__nav a { padding: 0 12px; white-space: nowrap; font-size: 0.875rem; }
+    .menu__salir { margin: 0; padding: 0 14px; }
+    .contenido { padding: 12px 4px 40px; }
+    .p-fila { grid-template-columns: 56px minmax(0, 1fr) 100px 150px; }
+    .p-fila__acciones { grid-column: 2 / -1; justify-content: flex-end; }
+  }
+
+  /* Teléfono */
+  @media (max-width: 640px) {
+    .menu__nav svg { display: none; }
+    .menu__nav a[target] { display: none; }
+    .kpis { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi { padding: 14px 16px; }
+    .tarjeta-grafica, .top { padding: 16px; }
+    .periodo { width: 100%; }
+    .periodo button { flex: 1; }
+    .p-fila { grid-template-columns: 48px minmax(0, 0.7fr) minmax(0, 1.3fr); grid-template-areas: 'foto info info' 'precio precio estado' 'acc acc acc'; gap: 10px; padding: 12px; }
+    .p-foto { grid-area: foto; width: 48px; height: 48px; }
+    .p-fila__info { grid-area: info; }
+    .campo--precio { grid-area: precio; text-align: left; }
+    .campo--estado { grid-area: estado; }
+    .p-fila__acciones { grid-area: acc; justify-content: flex-end; }
+    .p-fila__acciones .p-destacado { margin-right: auto; }
+    .barra-p select { min-width: 0; flex: 1; }
+    .nuevo form { grid-template-columns: 1fr; padding: 22px; }
+    .l-fila { grid-template-columns: 44px minmax(0, 1fr); }
+    .l-acciones { grid-column: 1 / -1; justify-content: flex-start; }
+    .entrar { padding: 28px 22px; }
+  }
+</style>

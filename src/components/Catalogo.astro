@@ -1,0 +1,247 @@
+---
+// Catálogo completo (Supabase): buscador, filtros, estado de cada perfume y botón para agregar al pedido.
+// Los datos se traen en el navegador para que un cambio en el panel se vea al instante.
+import { WHATSAPP } from '../data/perfumes';
+---
+
+<section id="catalogo" class="catalogo" aria-labelledby="catalogo-titulo" data-whatsapp={WHATSAPP}>
+  <div class="contenedor">
+    <header class="catalogo__cabeza">
+      <p class="etiqueta">Catálogo completo</p>
+      <h2 id="catalogo-titulo" class="catalogo__titulo">Más de 300 perfumes originales</h2>
+      <p class="catalogo__texto">
+        Los que dicen <b>Disponible</b> te los entregamos ya en Caracas. Los que están <b>por encargo</b> los pedimos para
+        ti y llegan en 3 a 5 días.
+      </p>
+    </header>
+
+    <div class="catalogo__controles">
+      <label class="buscador">
+        <span class="visualmente-oculto">Buscar un perfume</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.6" /><path d="M13.5 13.5 18 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" /></svg>
+        <input type="search" data-cat-buscar placeholder="Busca por nombre, marca o nota (vainilla, Lattafa…)" maxlength="60" autocomplete="off" />
+      </label>
+      <div class="filtros">
+        <div class="chips" role="group" aria-label="Para quién">
+          {['Todos', 'Caballero', 'Dama', 'Unisex'].map((c, i) => (
+            <button type="button" class="chip" data-cat-para={c} aria-pressed={i === 0 ? 'true' : 'false'}>{c}</button>
+          ))}
+        </div>
+        <div class="chips" role="group" aria-label="Disponibilidad">
+          {[['todos', 'Todos'], ['disponible', 'Disponible'], ['encargo', 'Por encargo']].map(([v, t], i) => (
+            <button type="button" class="chip" data-cat-estado={v} aria-pressed={i === 0 ? 'true' : 'false'}>{t}</button>
+          ))}
+        </div>
+        <label class="orden">
+          <span class="visualmente-oculto">Ordenar</span>
+          <select data-cat-orden>
+            <option value="destacados">Destacados primero</option>
+            <option value="menor">Precio: menor a mayor</option>
+            <option value="mayor">Precio: mayor a menor</option>
+            <option value="az">Nombre: A a Z</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <p class="catalogo__cuenta" aria-live="polite" data-cat-cuenta>Cargando el catálogo…</p>
+    <ul class="catalogo__lista" role="list" data-cat-lista>
+      {Array.from({ length: 8 }, () => <li class="tarjeta tarjeta--cargando" aria-hidden="true"><span class="tarjeta__visual"></span><span class="raya"></span><span class="raya raya--corta"></span></li>)}
+    </ul>
+    <div class="catalogo__vacio" data-cat-vacio hidden></div>
+    <button type="button" class="boton catalogo__mas" data-cat-mas hidden>Ver más perfumes</button>
+  </div>
+
+  <dialog class="cat-ficha" data-cat-ficha aria-labelledby="cat-ficha-nombre">
+    <button type="button" class="cat-ficha__cerrar" data-cat-cerrar aria-label="Cerrar">Cerrar</button>
+    <div class="cat-ficha__visual" data-cat-ficha-visual></div>
+    <div class="cat-ficha__info">
+      <p class="etiqueta" data-cat-ficha-cat></p>
+      <h3 id="cat-ficha-nombre" class="cat-ficha__nombre"></h3>
+      <p class="estado" data-cat-ficha-estado></p>
+      <p class="cat-ficha__desc" data-cat-ficha-desc></p>
+      <p class="cat-ficha__precio" data-cat-ficha-precio></p>
+      <div class="cat-ficha__acciones" data-cat-ficha-acciones></div>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  import { leerCatalogo, descripcion, ESTADOS, type PerfumeCatalogo } from '../scripts/supabase';
+  import { pedido } from '../scripts/pedido';
+  import { medir } from '../scripts/medir';
+  import { formatoUsd } from '../scripts/tasa';
+
+  const POR_PAGINA = 24;
+  const sec = document.querySelector<HTMLElement>('#catalogo')!;
+  const $ = <T extends Element>(s: string) => sec.querySelector<T>(s)!;
+  const lista = $<HTMLUListElement>('[data-cat-lista]');
+  const cuenta = $<HTMLElement>('[data-cat-cuenta]');
+  const vacio = $<HTMLElement>('[data-cat-vacio]');
+  const mas = $<HTMLButtonElement>('[data-cat-mas]');
+  const buscar = $<HTMLInputElement>('[data-cat-buscar]');
+  const orden = $<HTMLSelectElement>('[data-cat-orden]');
+  const ficha = $<HTMLDialogElement>('[data-cat-ficha]');
+  const WA = sec.dataset.whatsapp!;
+
+  let todos: PerfumeCatalogo[] = [];
+  let filtrados: PerfumeCatalogo[] = [];
+  let mostrados = POR_PAGINA;
+  let para = 'Todos', estado = 'todos';
+
+  const sinAcentos = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const casa = (nombre: string) => nombre.split(' ')[0];
+  const wa = (texto: string) => `https://wa.me/${WA}?text=${encodeURIComponent(texto)}`;
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, clase?: string, texto?: string) {
+    const n = document.createElement(tag);
+    if (clase) n.className = clase;
+    if (texto !== undefined) n.textContent = texto;
+    return n;
+  }
+
+  // Sin foto: una placa con la marca en tipografía de la casa (nunca una foto falsa)
+  function visual(p: PerfumeCatalogo, ancho = 400) {
+    const caja = el('span', 'tarjeta__visual');
+    if (p.foto_url) {
+      const img = el('img'); img.src = p.foto_url; img.alt = ''; img.loading = 'lazy'; img.decoding = 'async'; img.width = ancho;
+      caja.append(img);
+    } else {
+      caja.classList.add('tarjeta__visual--placa');
+      caja.append(el('span', 'placa__marca', casa(p.nombre)), el('span', 'placa__linea'));
+    }
+    return caja;
+  }
+
+  function etiquetaEstado(p: PerfumeCatalogo) {
+    const e = el('span', `estado estado--${p.estado}`); e.append(el('i'), document.createTextNode(ESTADOS[p.estado])); return e;
+  }
+
+  function agregar(p: PerfumeCatalogo, boton: HTMLButtonElement) {
+    const tamano = p.estado === 'disponible' ? 'Frasco' : 'Frasco · por encargo (3 a 5 días)';
+    pedido.agregar({ id: `cat-${p.slug}`, nombre: p.nombre, casa: casa(p.nombre), tamano, precio: Number(p.precio_usd) });
+    medir('agregar', { perfume: p.nombre, detalle: p.estado });
+    const original = boton.textContent;
+    boton.textContent = 'Agregado'; boton.classList.add('agregado'); boton.disabled = true;
+    setTimeout(() => { boton.textContent = original; boton.classList.remove('agregado'); boton.disabled = false; }, 1600);
+  }
+
+  function acciones(p: PerfumeCatalogo) {
+    const caja = el('div', 'tarjeta__acciones');
+    if (p.estado === 'agotado') {
+      const a = el('a', 'boton boton--fantasma', 'Avísame cuando llegue');
+      a.href = wa(`Hola, Goldhour. ¿Me avisan cuando vuelva ${p.nombre}?`); a.target = '_blank'; a.rel = 'noopener';
+      a.addEventListener('click', () => medir('whatsapp', { perfume: p.nombre, detalle: 'avisar' }));
+      caja.append(a);
+    } else {
+      const b = el('button', 'boton boton--principal', 'Agregar'); b.type = 'button';
+      b.addEventListener('click', (e) => { e.stopPropagation(); agregar(p, b); });
+      caja.append(b);
+    }
+    return caja;
+  }
+
+  function tarjeta(p: PerfumeCatalogo) {
+    const li = el('li', 'tarjeta');
+    const abrir = el('button', 'tarjeta__abrir'); abrir.type = 'button'; abrir.setAttribute('aria-label', `Ver detalles de ${p.nombre}`);
+    abrir.append(visual(p));
+    abrir.addEventListener('click', () => verFicha(p));
+    const info = el('div', 'tarjeta__info');
+    info.append(etiquetaEstado(p), el('h3', 'tarjeta__nombre', p.nombre));
+    if (p.familia) info.append(el('p', 'tarjeta__familia', p.familia));
+    if (p.notas) info.append(el('p', 'tarjeta__notas', p.notas));
+    info.append(el('p', 'tarjeta__precio', formatoUsd(Number(p.precio_usd))), acciones(p));
+    li.append(abrir, info);
+    return li;
+  }
+
+  function verFicha(p: PerfumeCatalogo) {
+    const vis = $<HTMLElement>('[data-cat-ficha-visual]'); vis.replaceChildren(visual(p, 700));
+    $<HTMLElement>('[data-cat-ficha-cat]').textContent = p.categoria;
+    $<HTMLElement>('#cat-ficha-nombre').textContent = p.nombre;
+    $<HTMLElement>('[data-cat-ficha-estado]').replaceChildren(etiquetaEstado(p));
+    $<HTMLElement>('[data-cat-ficha-desc]').textContent = descripcion(p);
+    $<HTMLElement>('[data-cat-ficha-precio]').textContent = formatoUsd(Number(p.precio_usd));
+    $<HTMLElement>('[data-cat-ficha-acciones]').replaceChildren(acciones(p));
+    ficha.showModal();
+    medir('ver_perfume', { perfume: p.nombre });
+  }
+  $('[data-cat-cerrar]').addEventListener('click', () => ficha.close());
+  ficha.addEventListener('click', (e) => { if (e.target === ficha) ficha.close(); });
+
+  function filtrar() {
+    const palabras = sinAcentos(buscar.value.trim()).split(/\s+/).filter(Boolean);
+    filtrados = todos.filter((p) =>
+      (para === 'Todos' || p.categoria === para) &&
+      (estado === 'todos' || p.estado === estado) &&
+      palabras.every((w) => sinAcentos(`${p.nombre} ${p.familia ?? ''} ${p.notas ?? ''}`).includes(w)));
+    const o = orden.value;
+    filtrados.sort((a, b) =>
+      o === 'menor' ? a.precio_usd - b.precio_usd :
+      o === 'mayor' ? b.precio_usd - a.precio_usd :
+      o === 'az' ? a.nombre.localeCompare(b.nombre, 'es') :
+      Number(b.destacado) - Number(a.destacado) || Number(b.estado === 'disponible') - Number(a.estado === 'disponible') || a.nombre.localeCompare(b.nombre, 'es'));
+    mostrados = POR_PAGINA;
+    pintar();
+  }
+
+  function pintar() {
+    const ver = filtrados.slice(0, mostrados);
+    lista.replaceChildren(...ver.map(tarjeta));
+    cuenta.textContent = filtrados.length ? `Mostrando ${ver.length} de ${filtrados.length} perfumes` : '';
+    mas.hidden = ver.length >= filtrados.length;
+    vacio.hidden = filtrados.length > 0;
+    if (!filtrados.length) {
+      const q = buscar.value.trim();
+      const a = el('a', 'boton boton--fantasma', 'Pregúntanos por WhatsApp');
+      a.href = wa(q ? `Hola, Goldhour. ¿Consiguen ${q}?` : 'Hola, Goldhour. Busco un perfume.'); a.target = '_blank'; a.rel = 'noopener';
+      a.addEventListener('click', () => medir('whatsapp', { detalle: `sin resultados: ${q}` }));
+      vacio.replaceChildren(el('p', '', q ? `No tenemos "${q}" en el catálogo, pero podemos buscarlo.` : 'No hay perfumes con esos filtros.'), a);
+    }
+  }
+
+  mas.addEventListener('click', () => { mostrados += POR_PAGINA; pintar(); });
+  sec.querySelectorAll<HTMLButtonElement>('[data-cat-para]').forEach((b) => b.addEventListener('click', () => {
+    para = b.dataset.catPara!; sec.querySelectorAll('[data-cat-para]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); filtrar();
+  }));
+  sec.querySelectorAll<HTMLButtonElement>('[data-cat-estado]').forEach((b) => b.addEventListener('click', () => {
+    estado = b.dataset.catEstado!; sec.querySelectorAll('[data-cat-estado]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); filtrar();
+  }));
+  orden.addEventListener('change', filtrar);
+  // Buscar mientras escribe; la búsqueda se mide cuando deja de escribir, una vez por texto
+  let tBuscar = 0, tMedir = 0, ultimaMedida = '';
+  buscar.addEventListener('input', () => {
+    clearTimeout(tBuscar); clearTimeout(tMedir);
+    tBuscar = window.setTimeout(filtrar, 180);
+    tMedir = window.setTimeout(() => {
+      const q = buscar.value.trim().toLowerCase();
+      if (q.length >= 3 && q !== ultimaMedida) { ultimaMedida = q; medir('busqueda', { detalle: q }); }
+    }, 1400);
+  });
+
+  // Carga: solo cuando el catálogo se acerca a la pantalla, para no frenar la portada
+  async function cargar() {
+    try {
+      todos = await leerCatalogo();
+      filtrar();
+    } catch (error) {
+      console.error('No se pudo cargar el catálogo:', error);
+      lista.replaceChildren();
+      cuenta.textContent = '';
+      const a = el('a', 'boton boton--fantasma', 'Escríbenos por WhatsApp');
+      a.href = wa('Hola, Goldhour. Quiero ver el catálogo completo.'); a.target = '_blank'; a.rel = 'noopener';
+      const reintentar = el('button', 'boton boton--principal', 'Intentar de nuevo'); reintentar.type = 'button';
+      reintentar.addEventListener('click', () => { vacio.hidden = true; cuenta.textContent = 'Cargando el catálogo…'; cargar(); });
+      vacio.replaceChildren(el('p', '', 'No pudimos cargar el catálogo en este momento.'), reintentar, a);
+      vacio.hidden = false;
+    }
+  }
+  new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); cargar(); } }, { rootMargin: '600px' }).observe(sec);
+</script>
+
+<style is:global>
+  /* Global a propósito: las tarjetas las crea el JS. Todo queda dentro de .catalogo para no chocar con otras secciones. */.catalogo { padding-block: var(--e-9); border-top: 1px solid var(--linea); scroll-margin-top: 72px; }.catalogo .catalogo__cabeza { max-width: 44rem; margin-bottom: var(--e-7); }.catalogo .catalogo__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) 0 var(--e-4); }.catalogo .catalogo__texto { margin: 0; color: var(--texto-2); }.catalogo .catalogo__texto b { color: var(--oro-claro); font-weight: 500; }.catalogo .catalogo__controles { display: grid; gap: var(--e-4); margin-bottom: var(--e-5); }.catalogo .buscador { display: flex; align-items: center; gap: var(--e-3); border-bottom: 1px solid var(--linea); padding: var(--e-2) 0; }.catalogo .buscador svg { width: 20px; color: var(--oro); flex: none; }.catalogo .buscador input { flex: 1; background: none; border: 0; color: var(--blanco); font: inherit; font-size: 1.125rem; padding: var(--e-2) 0; min-width: 0; }.catalogo .buscador input::placeholder { color: var(--texto-2); }.catalogo .buscador input:focus { outline: none; }.catalogo .buscador:focus-within { border-bottom-color: var(--oro); }.catalogo .filtros { display: flex; flex-wrap: wrap; gap: var(--e-4) var(--e-6); align-items: center; }.catalogo .chips { display: flex; flex-wrap: wrap; gap: var(--e-2); }.catalogo .chip { min-height: 40px; padding: 0 var(--e-4); border: 1px solid var(--linea); border-radius: 999px; background: none; color: var(--texto); font: inherit; font-size: 0.875rem; cursor: pointer; transition: background-color .2s, color .2s; }.catalogo .chip[aria-pressed='true'] { background: var(--oro); border-color: var(--oro); color: var(--negro); }.catalogo .chip:focus-visible, .catalogo .orden select:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }.catalogo .orden select { min-height: 40px; background: var(--negro-2); color: var(--texto); border: 1px solid var(--linea); border-radius: 999px; padding: 0 var(--e-4); font: inherit; font-size: 0.875rem; }.catalogo .catalogo__cuenta { color: var(--texto-2); font-size: var(--t-chico); margin: 0 0 var(--e-4); }.catalogo .catalogo__lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--e-5); }.catalogo .tarjeta { display: grid; grid-template-rows: auto 1fr; background: var(--negro-2); border: 1px solid var(--linea); border-radius: var(--radio); overflow: hidden; }.catalogo .tarjeta__abrir { padding: 0; border: 0; background: none; cursor: pointer; display: block; }.catalogo .tarjeta__abrir:focus-visible { outline: 2px solid var(--oro); outline-offset: -2px; }.catalogo .tarjeta__visual { display: grid; place-items: center; aspect-ratio: 4 / 3; background: #1d1b18; overflow: hidden; }.catalogo .tarjeta__visual img { width: 100%; height: 100%; object-fit: contain; }.catalogo .tarjeta__visual--placa { background: radial-gradient(120% 90% at 50% 0%, #2b2620 0%, #151413 70%); gap: var(--e-3); align-content: center; }.catalogo .placa__marca { font-family: var(--serif); font-size: 1.75rem; color: var(--oro-claro); letter-spacing: .04em; }.catalogo .placa__linea { width: 36px; height: 1px; background: var(--oro); opacity: .6; }.catalogo .tarjeta__info { display: grid; align-content: start; gap: var(--e-2); padding: var(--e-4); }.catalogo .tarjeta__nombre { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 1.125rem; line-height: 1.25; color: var(--blanco); }.catalogo .tarjeta__familia { margin: 0; font-size: 0.75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--oro); }.catalogo .tarjeta__notas { margin: 0; font-size: 0.8125rem; color: var(--texto-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }.catalogo .tarjeta__precio { margin: var(--e-1) 0 0; font-family: var(--serif); font-size: 1.375rem; color: var(--oro-claro); }.catalogo .tarjeta__acciones { margin-top: var(--e-2); }.catalogo .tarjeta__acciones .boton { width: 100%; justify-content: center; }.catalogo .boton--fantasma { border: 1px solid var(--linea); color: var(--texto); background: none; }.catalogo .boton--fantasma:hover { border-color: var(--oro); color: var(--oro-claro); }.catalogo .estado { display: inline-flex; align-items: center; gap: var(--e-2); margin: 0; font-size: 0.75rem; color: var(--texto); }.catalogo .estado i { width: 8px; height: 8px; border-radius: 50%; background: var(--texto-2); flex: none; }.catalogo .estado--disponible i { background: #6fd08c; box-shadow: 0 0 0 3px #6fd08c22; }.catalogo .estado--encargo i { background: var(--oro); }.catalogo .estado--agotado { color: var(--texto-2); }.catalogo .tarjeta--cargando { min-height: 340px; padding-bottom: var(--e-4); gap: var(--e-3); align-content: start; }.catalogo .tarjeta--cargando .tarjeta__visual, .catalogo .raya { background: linear-gradient(90deg, #1d1b18 0%, #26231f 50%, #1d1b18 100%); background-size: 200% 100%; animation: brillo 1.4s ease-in-out infinite; }.catalogo .raya { display: block; height: 12px; margin: 0 var(--e-4); border-radius: 2px; }.catalogo .raya--corta { width: 50%; }
+  @keyframes brillo { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) {.catalogo .tarjeta--cargando .tarjeta__visual, .catalogo .raya { animation: none; }}.catalogo .catalogo__vacio { display: grid; justify-items: start; gap: var(--e-4); padding: var(--e-6) 0; color: var(--texto); }.catalogo .catalogo__vacio p { margin: 0; }.catalogo .catalogo__mas { margin: var(--e-6) auto 0; display: flex; }.catalogo .cat-ficha { border: 0; padding: 0; margin: auto; width: min(880px, 94vw); max-height: 90vh; background: var(--negro-2); color: var(--texto); border: 1px solid var(--linea); display: none; grid-template-columns: 1fr 1.1fr; }.catalogo .cat-ficha[open] { display: grid; }.catalogo .cat-ficha::backdrop { background: #000c; }.catalogo .cat-ficha__visual .tarjeta__visual { aspect-ratio: auto; height: 100%; min-height: 320px; }.catalogo .cat-ficha__info { padding: var(--e-6); display: grid; align-content: start; gap: var(--e-3); overflow: auto; }.catalogo .cat-ficha__nombre { margin: 0; font-family: var(--serif); font-weight: 500; font-size: var(--t-h3); color: var(--blanco); line-height: 1.15; }.catalogo .cat-ficha__desc { margin: 0; color: var(--texto-2); line-height: 1.6; }.catalogo .cat-ficha__precio { margin: 0; font-family: var(--serif); font-size: 1.75rem; color: var(--oro-claro); }.catalogo .cat-ficha__cerrar { position: absolute; top: var(--e-3); right: var(--e-3); z-index: 2; min-height: 44px; padding: 0 var(--e-4); background: var(--negro-2); border: 1px solid var(--linea); color: var(--texto); font: inherit; font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+  @media (max-width: 767px) {.catalogo { padding-block: var(--e-8); }.catalogo .catalogo__lista { grid-template-columns: 1fr 1fr; gap: var(--e-3); }.catalogo .tarjeta__info { padding: var(--e-3); }.catalogo .tarjeta__nombre { font-size: 1rem; }.catalogo .tarjeta__notas { display: none; }.catalogo .cat-ficha { grid-template-columns: 1fr; }.catalogo .cat-ficha__visual .tarjeta__visual { min-height: 200px; }.catalogo .cat-ficha__info { padding: var(--e-5); }}
+</style>

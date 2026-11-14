@@ -1,11 +1,17 @@
 // Comportamiento compartido de la tienda: abrir fichas, agregar al pedido y el contador del menú.
 import { pedido } from './pedido';
+import { medir, medirVisita } from './medir';
+
+medirVisita();
 
 const fichaPorId = (id: string) => document.querySelector<HTMLDialogElement>(`#ficha-${CSS.escape(id)}`);
 
 function abrirFicha(id: string) {
   const ficha = fichaPorId(id);
-  if (ficha && !ficha.open) ficha.showModal();
+  if (ficha && !ficha.open) {
+    ficha.showModal();
+    medir('ver_perfume', { perfume: ficha.querySelector('h3')?.textContent ?? id });
+  }
 }
 
 // Botones "Ver ficha" y foto de cada perfume.
@@ -51,6 +57,7 @@ function agregarDesde(boton: HTMLButtonElement) {
   }
   const opciones = radios.length > 1 ? radios.map((r) => ({ tamano: r.value, precio: Number(r.dataset.precio) })) : undefined;
   pedido.agregar({ id, nombre, casa, tamano, precio, opciones });
+  medir('agregar', { perfume: nombre, detalle: tamano });
 
   const texto = boton.querySelector('[data-texto]') ?? boton;
   const original = boton.dataset.textoOriginal ?? texto.textContent ?? '';
