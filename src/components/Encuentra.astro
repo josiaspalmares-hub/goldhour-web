@@ -113,8 +113,14 @@ import { WHATSAPP } from '../data/perfumes';
       const img = el('img'); img.src = p.foto_url; img.alt = ''; img.width = 88; img.height = 88; img.loading = 'lazy'; img.decoding = 'async';
       foto.append(img);
     } else foto.append(el('span', 'reco__marca', casa(p.nombre)));
+    // Toda la tarjeta abre la ficha: el botón del nombre se estira sobre ella (menos sobre "Agregar")
+    const nombre = el('h3', 'reco__nombre');
+    const abrir = el('button', 'reco__abrir', p.nombre); abrir.type = 'button';
+    abrir.setAttribute('aria-label', `${p.nombre}: ver la ficha`);
+    abrir.addEventListener('click', () => document.dispatchEvent(new CustomEvent('gh:ver-perfume', { detail: { slug: p.slug } })));
+    nombre.append(abrir);
     const info = el('div', 'reco__info');
-    info.append(el('p', 'reco__casa', `${p.categoria} · ${p.estado === 'disponible' ? 'Disponible ya' : 'Por encargo'}`), el('h3', 'reco__nombre', p.nombre));
+    info.append(el('p', 'reco__casa', `${p.categoria} · ${p.estado === 'disponible' ? 'Disponible ya' : 'Por encargo'}`), nombre);
     if (p.notas) info.append(el('p', 'reco__notas', p.notas.split('·').map((t) => t.trim()).filter(Boolean).slice(0, 2).join(' · ')));
     info.append(el('p', 'reco__precio', formatoUsd(Number(p.precio_usd))));
 
@@ -127,9 +133,7 @@ import { WHATSAPP } from '../data/perfumes';
       agregar.textContent = 'Agregado'; agregar.disabled = true;
       setTimeout(() => { agregar.textContent = 'Agregar'; agregar.disabled = false; }, 1600);
     });
-    const ver = el('button', 'reco__boton', 'Ver ficha'); ver.type = 'button';
-    ver.addEventListener('click', () => document.dispatchEvent(new CustomEvent('gh:ver-perfume', { detail: { slug: p.slug } })));
-    acciones.append(agregar, ver);
+    acciones.append(agregar);
     li.append(foto, info, acciones);
     return li;
   }
@@ -246,7 +250,12 @@ import { WHATSAPP } from '../data/perfumes';
   .recomendados :global(.reco__foto) { width: 72px; height: 88px; display: grid; place-items: center; overflow: hidden; border-radius: var(--radio); background: #f4f1ec; }
   .recomendados :global(.reco__foto img) { width: 100%; height: 100%; object-fit: contain; }
   .recomendados :global(.reco__marca) { font-family: var(--serif); color: var(--oro-oscuro); }
-  .recomendados :global(.reco__acciones) { display: grid; gap: var(--e-2); }
+  .recomendados :global(.reco__acciones) { position: relative; z-index: 1; display: grid; gap: var(--e-2); }
+  .recomendados :global(.reco) { position: relative; cursor: pointer; transition: border-color 0.2s; }
+  .recomendados :global(.reco:hover) { border-color: var(--oro); }
+  .recomendados :global(.reco__abrir) { all: unset; cursor: pointer; }
+  .recomendados :global(.reco__abrir::after) { content: ''; position: absolute; inset: 0; }
+  .recomendados :global(.reco__abrir:focus-visible::after) { outline: 2px solid var(--oro); outline-offset: 2px; }
   .encuentra :global(.reco__boton) { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0 var(--e-4); border: 1px solid var(--linea); border-radius: var(--radio); background: none; color: var(--texto); font: inherit; font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; white-space: nowrap; cursor: pointer; }
   .encuentra :global(.reco__boton:hover) { border-color: var(--oro); color: var(--oro-claro); }
   .encuentra :global(.reco__boton--oro) { background: var(--oro); border-color: var(--oro); color: var(--negro); }
@@ -275,6 +284,6 @@ import { WHATSAPP } from '../data/perfumes';
     .encuentra__grid { grid-template-columns: 1fr; gap: var(--e-6); }
     .recomendados :global(.reco) { grid-template-columns: 64px 1fr; }
     .recomendados :global(.reco__foto) { width: 64px; height: 80px; }
-    .recomendados :global(.reco__acciones) { grid-column: 1 / -1; grid-template-columns: 1fr 1fr; }
+    .recomendados :global(.reco__acciones) { grid-column: 1 / -1; }
   }
 </style>

@@ -37,11 +37,12 @@ const filtros = [
         const tamano = p.tamanos[0];
         return (
           <li class="tarjeta" id={p.id} data-para={p.para} data-producto>
-            <button type="button" class="tarjeta__foto" data-abrir-ficha={p.id} aria-label={`Ver la ficha de ${p.nombre}`}>
+            <span class="tarjeta__foto">
               <Image src={fotoDe(p.foto ?? p.id)} alt="" width={420} format="webp" loading="lazy" />
-            </button>
+            </span>
             <p class="etiqueta tarjeta__casa">{p.casa}</p>
-            <h3 class="tarjeta__nombre">{p.nombre}</h3>
+            <!-- Toda la tarjeta abre la ficha: el botón del nombre se estira sobre ella (menos sobre "Agregar") -->
+            <h3 class="tarjeta__nombre"><button type="button" class="tarjeta__abrir" data-abrir-ficha={p.id} aria-label={`${p.nombre}: ver la ficha`}>{p.nombre}</button></h3>
             <p class="tarjeta__detalle">{p.concentracion} · {tamano.etiqueta}</p>
             <p class="tarjeta__precio">${tamano.precio}</p>
             <div class="tarjeta__acciones">
@@ -55,7 +56,6 @@ const filtros = [
                 data-tamano={tamano.etiqueta}
                 data-precio={tamano.precio}
               ><span data-texto>Agregar</span></button>
-              <button type="button" class="boton boton--secundario" data-abrir-ficha={p.id}>Ver ficha</button>
             </div>
           </li>
         );
@@ -136,7 +136,11 @@ const filtros = [
     gap: var(--e-7) var(--e-5);
   }
 
-  .tarjeta { display: flex; flex-direction: column; }
+  .tarjeta { position: relative; display: flex; flex-direction: column; cursor: pointer; }
+  .tarjeta__abrir { all: unset; cursor: pointer; }
+  .tarjeta__abrir::after { content: ''; position: absolute; inset: 0; border-radius: var(--radio); }
+  .tarjeta__abrir:focus-visible::after { outline: 2px solid var(--oro); outline-offset: 4px; }
+  .tarjeta:hover .tarjeta__abrir { color: var(--oro-claro); }
   .tarjeta[hidden] { display: none; }
 
   /* Cada frasco sobre su base, con la luz cálida desde la izquierda. */
@@ -166,15 +170,15 @@ const filtros = [
     filter: drop-shadow(0 18px 16px rgba(0, 0, 0, 0.6));
     transition: transform 0.4s var(--ease-salida);
   }
-  .tarjeta__foto:hover img { transform: translateY(-4px); }
-  @media (prefers-reduced-motion: reduce) { .tarjeta__foto:hover img { transform: none; } }
+  .tarjeta:hover .tarjeta__foto img { transform: translateY(-4px); }
+  @media (prefers-reduced-motion: reduce) { .tarjeta:hover .tarjeta__foto img { transform: none; } }
 
   .tarjeta__casa { margin: 0; }
   .tarjeta__nombre { font-family: var(--serif); font-size: 1.375rem; font-weight: 500; color: var(--blanco); margin: var(--e-1) 0 var(--e-1); line-height: 1.2; }
   .tarjeta__detalle { margin: 0; font-size: 0.875rem; color: var(--texto-2); }
   .tarjeta__precio { margin: var(--e-2) 0 var(--e-4); font-family: var(--serif); font-size: 1.5rem; color: var(--oro-claro); }
 
-  .tarjeta__acciones { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-2); }
+  .tarjeta__acciones { position: relative; z-index: 1; margin-top: auto; display: grid; }
   .tarjeta__acciones .boton { padding: 0 var(--e-3); font-size: 0.8125rem; }
 
   .vitrina__vacio { color: var(--texto-2); }
@@ -188,7 +192,7 @@ const filtros = [
     .tarjeta__nombre { font-size: 1.0625rem; }
     .tarjeta__detalle { font-size: 0.75rem; }
     .tarjeta__precio { font-size: 1.25rem; }
-    .tarjeta__acciones { grid-template-columns: 1fr; }
+
 
     /* En el teléfono el precio y el botón de comprar quedan fijos abajo de la ficha. */
     .ficha-comprar {
