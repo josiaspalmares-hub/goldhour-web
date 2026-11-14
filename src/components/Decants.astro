@@ -21,21 +21,21 @@ import { fotoDe } from '../data/fotos';
     <ul class="decants__lista" role="list">
       {decants.map((p) => (
         <li class="decant" id={p.id} data-producto data-elegido={p.tamanos[0].etiqueta}>
-          <button type="button" class="decant__foto" data-abrir-ficha={p.id} aria-label={`Ver la ficha de ${p.nombre}`}>
+          <span class="decant__foto">
             <Image class="decant__frasco" src={fotoDe(p.foto ?? p.id)} alt="" width={420} format="webp" loading="lazy" />
             <span class="decant__frasquitos"><Frasquitos /></span>
-          </button>
+          </span>
 
           <div class="decant__info">
             <p class="etiqueta">{p.casa}</p>
-            <h3 class="decant__nombre">{p.nombre}</h3>
+            <!-- Toda la tarjeta abre la ficha (menos los tamaños y "Agregar", que van por encima) -->
+            <h3 class="decant__nombre"><button type="button" class="decant__abrir" data-abrir-ficha={p.id} aria-label={`${p.nombre}: ver la ficha`}>{p.nombre}</button></h3>
             <p class="decant__frase">{p.frase}</p>
             <SelectorTamano perfume={p} grupo={`tam-${p.id}`} />
             <div class="decant__acciones">
               <button type="button" class="boton boton--oscuro" data-agregar data-id={p.id} data-nombre={p.nombre} data-casa={p.casa}>
                 <span data-texto>Agregar</span>
               </button>
-              <button type="button" class="decant__ver" data-abrir-ficha={p.id}>Ver ficha</button>
             </div>
           </div>
         </li>
@@ -78,17 +78,19 @@ import { fotoDe } from '../data/fotos';
   }
 
   /* Tarjeta ancha: el frasco original con el frasquito al frente, y a su lado la información. */
-  .decant { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: var(--e-5); align-items: center; }
+  .decant { position: relative; display: grid; grid-template-columns: 0.9fr 1.1fr; gap: var(--e-5); align-items: center; cursor: pointer; }
+  .decant__abrir { all: unset; cursor: pointer; transition: color 0.2s; }
+  .decant__abrir::after { content: ''; position: absolute; inset: 0; border-radius: var(--radio); }
+  .decant__abrir:focus-visible::after { outline: 2px solid var(--oro-oscuro); outline-offset: 4px; }
+  .decant:hover .decant__abrir { color: var(--oro-oscuro); }
+  .decant :global(.selector), .decant__acciones { position: relative; z-index: 1; cursor: auto; }
 
   .decant__foto {
     position: relative;
     aspect-ratio: 4 / 5;
     width: 100%;
-    border: 0;
-    padding: 0;
     border-radius: var(--radio);
     background: radial-gradient(70% 28% at 50% 90%, rgba(138, 102, 36, 0.18), transparent 70%), #e9e1d2;
-    cursor: pointer;
     overflow: hidden;
   }
   .decant__foto :global(.decant__frasco) {
@@ -106,9 +108,9 @@ import { fotoDe } from '../data/fotos';
   .decant__frasquitos :global(.frasquitos) { inset: 0; }
   /* Con el frasco completo no hay frasquito: el perfume se corre al centro para no dejar el hueco. */
   .decant[data-elegido^='Frasco'] .decant__foto :global(.decant__frasco) { translate: 13.6% 0; }
-  .decant__foto:hover :global(.decant__frasco) { transform: translateY(-4px); }
+  .decant:hover .decant__foto :global(.decant__frasco) { transform: translateY(-4px); }
   @media (prefers-reduced-motion: reduce) {
-    .decant__foto:hover :global(.decant__frasco) { transform: none; }
+    .decant:hover .decant__foto :global(.decant__frasco) { transform: none; }
     .decant__foto :global(.decant__frasco) { transition: none; }
   }
 
@@ -116,19 +118,6 @@ import { fotoDe } from '../data/fotos';
   .decant__frase { margin: 0 0 var(--e-4); font-size: 0.9375rem; color: #4a4540; }
 
   .decant__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-4); margin-top: var(--e-4); }
-  .decant__ver {
-    min-height: 44px;
-    padding: 0;
-    background: none;
-    border: 0;
-    border-bottom: 1px solid currentColor;
-    color: var(--tinta);
-    font: inherit;
-    font-size: 0.8125rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    cursor: pointer;
-  }
 
   .ficha-decant { display: grid; gap: var(--e-4); }
   .ficha-decant .boton { justify-self: start; }
