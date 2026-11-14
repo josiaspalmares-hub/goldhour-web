@@ -1,24 +1,28 @@
 ---
 import Legal from '../layouts/Legal.astro';
-import { creditosFotos } from '../data/creditos';
+
+// Videos de la sección "Entra en el frasco" (Pexels, licencia libre: uso comercial permitido, sin atribución obligatoria)
+const videos = [
+  { que: 'Líquido dorado', titulo: 'Yellow ink flows in different directions in slow motion', url: 'https://www.pexels.com/video/yellow-ink-flows-in-different-directions-in-slow-motion-3051359/' },
+  { que: 'Lavanda', titulo: 'Beautiful flowers in the garden', url: 'https://www.pexels.com/video/beautiful-flowers-in-the-garden-8641653/' },
+  { que: 'Vainilla', titulo: 'A person cutting a vanilla bean', url: 'https://www.pexels.com/video/a-person-cutting-a-vanilla-bean-5659913/' },
+  { que: 'Miel', titulo: 'Close-up of honey dripping with dipper', url: 'https://www.pexels.com/video/close-up-of-honey-dripping-with-dipper-31656449/' },
+];
 ---
 
 <Legal
-  titulo="Créditos de fotos"
-  descripcion="Autores y licencias de las fotos de ingredientes usadas en Goldhour."
-  actualizado="12 de noviembre de 2026"
+  titulo="Créditos de fotos y videos"
+  descripcion="De dónde salen las fotos y los videos usados en Goldhour."
+  actualizado="14 de noviembre de 2026"
 >
   <p>
-    Las fotos de los perfumes son de sus marcas. Las de los ingredientes que flotan en la sección
-    "Entra en el frasco" vienen de Wikimedia Commons; les quitamos el fondo. Las de licencia CC BY-SA
-    se comparten bajo esa misma licencia.
+    Las fotos de los perfumes son de sus marcas. Los videos de ingredientes de la sección "Entra en el frasco" son de
+    <a href="https://www.pexels.com" rel="noopener" target="_blank">Pexels</a>, con su
+    <a href="https://www.pexels.com/license/" rel="noopener" target="_blank">licencia libre</a>; los recortamos y les ajustamos el color.
   </p>
   <ul>
-    {creditosFotos.map((c) => (
-      <li>
-        <strong>{c.ingrediente}</strong>: foto de {c.autor}, <a href={c.licenciaUrl} rel="noopener" target="_blank">{c.licencia}</a>,{' '}
-        <a href={c.fuente} rel="noopener" target="_blank">ver original</a>.
-      </li>
+    {videos.map((v) => (
+      <li><strong>{v.que}</strong>: <a href={v.url} rel="noopener" target="_blank">{v.titulo}</a> (Pexels).</li>
     ))}
   </ul>
 </Legal>

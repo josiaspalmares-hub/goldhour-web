@@ -1,30 +1,54 @@
 ---
-// "Entra en el frasco": al bajar, la cámara se mete en el líquido del Khamrah Qahwa; sus ingredientes (fotos reales) y sus notas
-// del perfume pasan flotando, por etapas (salida, corazón, fondo). El interior ámbar se dibuja en un canvas.
+// "Entra en el frasco": al bajar, la cámara se mete en el Le Male Elixir y cada etapa de su perfume (salida, corazón, fondo)
+// se ve con un video real de sus ingredientes (Pexels, licencia libre), con polvo dorado flotando encima.
+// Los videos se bajan uno por uno solo cuando hacen falta, y en el teléfono se usan versiones verticales más livianas.
 import { getImage } from 'astro:assets';
-import khamrah from '../assets/perfumes/khamrah-qahwa.png';
-import { frascos } from '../data/perfumes';
+import elixir from '../assets/perfumes/le-male-elixir.png';
+import { WHATSAPP } from '../data/perfumes';
 
-const perfume = frascos.find((p) => p.id === 'khamrah-qahwa');
-if (!perfume) throw new Error('Falta Khamrah Qahwa en el catálogo');
-// Mismos tamaños y calidad que la foto de la portada: el navegador reutiliza la que ya bajó
-const fotoGrande = await getImage({ src: khamrah, width: 900, format: 'webp', quality: 72 });
-const fotoChica = await getImage({ src: khamrah, width: 540, format: 'webp', quality: 72 });
-const etapas = [
-  { nombre: 'Notas de salida', notas: perfume.ficha.salida },
-  { nombre: 'Corazón', notas: perfume.ficha.corazon },
-  { nombre: 'Fondo', notas: perfume.ficha.fondo },
+const perfume = {
+  slug: 'jean-paul-gaultier-le-male-elixir-eau-de-parfum-125-ml',
+  casa: 'Jean Paul Gaultier',
+  nombre: 'Le Male Elixir',
+  nombreCatalogo: 'Jean Paul Gaultier Le Male Elixir Eau de Parfum 125 ml',
+  precio: 145, // se actualiza con el catálogo al cargar la sección
+};
+const fotoGrande = await getImage({ src: elixir, width: 900, format: 'webp', quality: 78 });
+const fotoChica = await getImage({ src: elixir, width: 540, format: 'webp', quality: 78 });
+
+// Cada etapa: su video y las notas que pasan flotando
+const escenas = [
+  { video: 'liquido' }, // al entrar en el frasco
+  { video: 'lavanda', nombre: 'Notas de salida', notas: ['Lavanda', 'Menta'] },
+  { video: 'vainilla', nombre: 'Corazón', notas: ['Vainilla', 'Benjuí'] },
+  { video: 'miel', nombre: 'Fondo', notas: ['Miel', 'Haba tonka', 'Tabaco'] },
 ];
+const etapas = escenas.filter((e) => e.nombre);
 // Posiciones donde aparece cada palabra (en % de la pantalla), para que no caigan todas en el centro.
-const puestos = [
-  [24, 34], [72, 46], [40, 68],
-];
+const puestos = [[26, 36], [70, 50], [42, 68]];
+const videoDe = (n: string) => `/media/elixir/${n}`;
 ---
 
-<section class="inmersion" aria-label={`Dentro del ${perfume.nombre}`}>
+<section class="inmersion" aria-label={`Dentro del ${perfume.nombre}`} data-slug={perfume.slug} data-whatsapp={WHATSAPP}>
   <div class="inmersion__escena">
-    <canvas class="inmersion__liquido" aria-hidden="true"></canvas>
-    <canvas class="inmersion__3d" aria-hidden="true"></canvas>
+    <div class="inmersion__videos" aria-hidden="true">
+      {escenas.map((e, i) => (
+        <video
+          class="inmersion__video"
+          data-escena={i}
+          data-pc={`${videoDe(e.video)}-pc.mp4`}
+          data-movil={`${videoDe(e.video)}-movil.mp4`}
+          poster={`${videoDe(e.video)}-cartel.webp`}
+          muted
+          loop
+          playsinline
+          preload="none"
+        ></video>
+      ))}
+    </div>
+    <div class="inmersion__velo" aria-hidden="true"></div>
+    <div class="inmersion__oscuro" aria-hidden="true"></div>
+    <canvas class="inmersion__polvo" aria-hidden="true"></canvas>
 
     <div class="inmersion__intro">
       <p class="etiqueta">Entra en el frasco</p>
@@ -35,9 +59,9 @@ const puestos = [
       class="inmersion__frasco"
       src={fotoGrande.src}
       srcset={`${fotoChica.src} 540w, ${fotoGrande.src} 900w`}
-      sizes="(max-width: 767px) 60vw, 32vw"
-      width={khamrah.width}
-      height={khamrah.height}
+      sizes="(max-width: 767px) 50vw, 26vw"
+      width={elixir.width}
+      height={elixir.height}
       alt={`Frasco de ${perfume.nombre}`}
       loading="lazy"
       decoding="async"
@@ -46,7 +70,7 @@ const puestos = [
     {etapas.map((etapa, i) => (
       <div class="inmersion__etapa" data-etapa={i}>
         <p class="etiqueta inmersion__etapa-nombre">{etapa.nombre}</p>
-        {etapa.notas.map((nota, j) => (
+        {etapa.notas!.map((nota, j) => (
           <span class="inmersion__nota" style={`--x:${puestos[j % 3][0]}%;--y:${puestos[j % 3][1]}%`}>{nota}</span>
         ))}
       </div>
@@ -54,8 +78,21 @@ const puestos = [
 
     <div class="inmersion__final">
       <p class="inmersion__perfume">{perfume.casa} · {perfume.nombre}</p>
-      <p class="inmersion__frase">Cada perfume guarda una historia.</p>
-      <a class="boton boton--principal" href="#encuentra">Encuentra la tuya</a>
+      <p class="inmersion__frase">Miel, lavanda y vainilla que se quedan en la piel.</p>
+      <p class="inmersion__precio"><span data-elixir-precio>${perfume.precio}</span> · <span data-elixir-estado>por encargo, llega en 3 a 5 días</span></p>
+      <div class="inmersion__acciones">
+        <button
+          type="button"
+          class="boton boton--principal"
+          data-agregar
+          data-id={`cat-${perfume.slug}`}
+          data-nombre={perfume.nombreCatalogo}
+          data-casa={perfume.casa}
+          data-tamano="Frasco · por encargo (3 a 5 días)"
+          data-precio={perfume.precio}
+        ><span data-texto>Agregar al pedido</span></button>
+        <a class="boton boton--secundario" href="#encuentra">Encuentra el tuyo</a>
+      </div>
     </div>
   </div>
 </section>
@@ -63,224 +100,190 @@ const puestos = [
 <script>
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import type { Ingredientes } from '../scripts/ingredientes3d';
+  import { leerCatalogo } from '../scripts/supabase';
 
   const forzarMovimiento = import.meta.env.DEV && new URLSearchParams(location.search).has('movimiento');
   const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !forzarMovimiento;
+  const movil = window.matchMedia('(max-width: 767px)').matches;
 
   const seccion = document.querySelector<HTMLElement>('.inmersion')!;
-  const canvas = seccion.querySelector<HTMLCanvasElement>('.inmersion__liquido')!;
+  const videos = [...seccion.querySelectorAll<HTMLVideoElement>('.inmersion__video')];
+  const canvas = seccion.querySelector<HTMLCanvasElement>('.inmersion__polvo')!;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('El navegador no permite dibujar en canvas');
 
-  // ---------- Interior del frasco ----------
-  const movil = window.matchMedia('(max-width: 767px)').matches;
-  const PROFUNDIDAD = 10;
-  const estado = { avance: 0 }; // 0 = recién entramos al líquido · 1 = fondo del frasco
+  // ---------- Videos: se bajan de a uno y solo suena (se reproduce) el que se ve ----------
+  const cargarVideo = (v: HTMLVideoElement | undefined) => {
+    if (!v || v.getAttribute('src')) return;
+    v.src = movil ? v.dataset.movil! : v.dataset.pc!;
+    v.preload = 'auto';
+  };
+  let activo = -1;
+  function mostrarVideo(i: number) {
+    if (i === activo) return;
+    activo = i;
+    cargarVideo(videos[i]);
+    cargarVideo(videos[i + 1]); // el siguiente se va bajando mientras se ve este
+    videos.forEach((v, k) => {
+      if (k === i) v.play().catch((e: DOMException) => { if (e.name !== 'AbortError' && e.name !== 'NotAllowedError') throw e; });
+      else v.pause();
+    });
+  }
+
+  // ---------- Polvo dorado: motas de luz que suben despacio ----------
   let ancho = 0, alto = 0, escala = 1;
-
-  type Particula = { x: number; y: number; z: number; r: number; sube: number; tipo: 'burbuja' | 'mota' };
-  const particulas: Particula[] = Array.from({ length: movil ? 70 : 140 }, (_, i) => ({
-    x: (Math.random() * 2 - 1) * 1.4,
-    y: (Math.random() * 2 - 1) * 1.2,
-    z: Math.random() * PROFUNDIDAD,
-    r: 0.4 + Math.random() * 1.1,
-    sube: 0.04 + Math.random() * 0.12,
-    tipo: i % 3 === 0 ? 'mota' : 'burbuja',
+  const motas = Array.from({ length: movil ? 40 : 80 }, () => ({
+    x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 1.8, sube: 0.008 + Math.random() * 0.025, fase: Math.random() * 6.28,
   }));
-
   function medir() {
     escala = Math.min(window.devicePixelRatio || 1, movil ? 1 : 1.5);
-    ancho = canvas.clientWidth;
-    alto = canvas.clientHeight;
-    canvas.width = Math.round(ancho * escala);
-    canvas.height = Math.round(alto * escala);
+    ancho = canvas.clientWidth; alto = canvas.clientHeight;
+    canvas.width = Math.round(ancho * escala); canvas.height = Math.round(alto * escala);
   }
-
-  function fondo(t: number) {
-    // Del ámbar claro (recién entramos) a un café profundo (el fondo del perfume)
-    const a = estado.avance;
-    const g = ctx!.createRadialGradient(ancho * 0.5, alto * 0.28, 0, ancho * 0.5, alto * 0.5, Math.max(ancho, alto) * 0.85);
-    g.addColorStop(0, `hsl(${38 - a * 8} 85% ${56 - a * 22}%)`);
-    g.addColorStop(0.55, `hsl(${32 - a * 6} 80% ${30 - a * 14}%)`);
-    g.addColorStop(1, `hsl(24 70% ${10 - a * 4}%)`);
-    ctx!.fillStyle = g;
-    ctx!.fillRect(0, 0, ancho, alto);
-
-    // Rayos de luz que bajan desde la superficie y se mecen despacio
-    ctx!.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 5; i++) {
-      const giro = Math.sin(t * 0.00025 + i * 1.7) * 0.12 + (i - 2) * 0.22;
-      ctx!.save();
-      ctx!.translate(ancho * 0.5, -alto * 0.1);
-      ctx!.rotate(giro);
-      const rayo = ctx!.createLinearGradient(0, 0, 0, alto * 1.2);
-      rayo.addColorStop(0, `rgba(255, 228, 160, ${0.13 * (1 - a * 0.6)})`);
-      rayo.addColorStop(1, 'rgba(255, 228, 160, 0)');
-      ctx!.fillStyle = rayo;
-      const w = ancho * (0.05 + (i % 2) * 0.04);
-      ctx!.fillRect(-w / 2, 0, w, alto * 1.2);
-      ctx!.restore();
-    }
-    ctx!.globalCompositeOperation = 'source-over';
-  }
-
-  function particulasDibujo(dt: number) {
-    const camara = estado.avance * PROFUNDIDAD * 2.2;
-    const base = Math.min(ancho, alto) * 0.02;
-    for (const p of particulas) {
-      p.y -= p.sube * dt * 0.001;
-      if (p.y < -1.3) p.y = 1.3;
-      const z = ((((p.z - camara) % PROFUNDIDAD) + PROFUNDIDAD) % PROFUNDIDAD) + 0.15;
-      const f = 1.1 / z; // más cerca = más grande
-      const x = ancho / 2 + p.x * f * ancho * 0.5;
-      const y = alto / 2 + p.y * f * alto * 0.5;
-      const r = p.r * f * base;
-      if (x < -r || x > ancho + r || y < -r || y > alto + r) continue;
-      // Se desvanecen al llegar muy cerca o muy lejos, para que no "salten"
-      const alfa = Math.min(1, z / 0.8) * Math.min(1, (PROFUNDIDAD - z) / 3);
-      if (p.tipo === 'mota') {
-        const g = ctx!.createRadialGradient(x, y, 0, x, y, r * 1.6);
-        g.addColorStop(0, `rgba(255, 214, 140, ${0.5 * alfa})`);
-        g.addColorStop(1, 'rgba(255, 214, 140, 0)');
-        ctx!.fillStyle = g;
-        ctx!.fillRect(x - r * 1.6, y - r * 1.6, r * 3.2, r * 3.2);
-      } else {
-        ctx!.beginPath();
-        ctx!.arc(x, y, r, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(255, 236, 200, ${0.06 * alfa})`;
-        ctx!.fill();
-        ctx!.lineWidth = Math.max(0.6, r * 0.08);
-        ctx!.strokeStyle = `rgba(255, 240, 210, ${0.45 * alfa})`;
-        ctx!.stroke();
-        ctx!.beginPath();
-        ctx!.arc(x - r * 0.35, y - r * 0.35, r * 0.22, 0, Math.PI * 2);
-        ctx!.fillStyle = `rgba(255, 255, 255, ${0.7 * alfa})`;
-        ctx!.fill();
-      }
-    }
-  }
-
-  // Ingredientes en 3D: Three.js pesa, así que se descarga solo cuando la sección se acerca
-  const lienzo3d = seccion.querySelector<HTMLCanvasElement>('.inmersion__3d')!;
-  let ingredientes: Ingredientes | null = null;
-  async function cargarIngredientes() {
-    const { crearIngredientes } = await import('../scripts/ingredientes3d');
-    try {
-      ingredientes = crearIngredientes(lienzo3d, movil);
-    } catch (error) {
-      // Sin WebGL (equipos muy viejos) queda el interior en 2D, que también funciona solo
-      console.error('No se pudo iniciar el 3D de ingredientes:', error);
-      lienzo3d.remove();
-      return;
-    }
-    ingredientes.medir();
-  }
-
-  let ultimo = 0;
-  let cuadro = 0;
+  let ultimo = 0, cuadro = 0;
   function dibujar(t: number) {
-    const dt = ultimo ? Math.min(t - ultimo, 50) : 16;
+    const dt = ultimo ? Math.min(t - ultimo, 50) / 1000 : 0.016;
     ultimo = t;
     ctx!.setTransform(escala, 0, 0, escala, 0, 0);
-    fondo(t);
-    particulasDibujo(dt);
-    ingredientes?.dibujar(estado.avance, t);
+    ctx!.clearRect(0, 0, ancho, alto);
+    ctx!.globalCompositeOperation = 'lighter';
+    for (const m of motas) {
+      m.y -= m.sube * dt; if (m.y < -0.05) { m.y = 1.05; m.x = Math.random(); }
+      const x = (m.x + Math.sin(t * 0.0004 + m.fase) * 0.01) * ancho, y = m.y * alto;
+      const brillo = 0.35 + 0.35 * Math.sin(t * 0.002 + m.fase);
+      const r = m.r * (movil ? 1.2 : 1.6);
+      const g = ctx!.createRadialGradient(x, y, 0, x, y, r * 3);
+      g.addColorStop(0, `rgba(255, 220, 150, ${brillo})`);
+      g.addColorStop(1, 'rgba(255, 200, 120, 0)');
+      ctx!.fillStyle = g;
+      ctx!.fillRect(x - r * 3, y - r * 3, r * 6, r * 6);
+    }
+    ctx!.globalCompositeOperation = 'source-over';
     cuadro = requestAnimationFrame(dibujar);
   }
+  const encender = () => { if (!cuadro) { ultimo = 0; cuadro = requestAnimationFrame(dibujar); } };
+  const apagar = () => { cancelAnimationFrame(cuadro); cuadro = 0; videos.forEach((v) => v.pause()); activo = -1; };
 
-  function encender() {
-    if (!cuadro) { ultimo = 0; cuadro = requestAnimationFrame(dibujar); }
-  }
-  function apagar() {
-    cancelAnimationFrame(cuadro);
-    cuadro = 0;
+  // ---------- Precio y estado al día, desde el catálogo (si falla, queda el precio escrito) ----------
+  async function actualizarPrecio() {
+    let p;
+    try {
+      p = (await leerCatalogo()).find((x) => x.slug === seccion.dataset.slug);
+    } catch (error) {
+      console.warn('No se pudo actualizar el precio del Le Male Elixir:', error);
+      return;
+    }
+    if (!p) return;
+    const boton = seccion.querySelector<HTMLButtonElement>('[data-agregar]')!;
+    seccion.querySelector('[data-elixir-precio]')!.textContent = `$${Number(p.precio_usd)}`;
+    boton.dataset.precio = String(Number(p.precio_usd));
+    const disponible = p.estado === 'disponible';
+    seccion.querySelector('[data-elixir-estado]')!.textContent = disponible ? 'disponible ya en Caracas' : p.estado === 'agotado' ? 'agotado por ahora' : 'por encargo, llega en 3 a 5 días';
+    boton.dataset.tamano = disponible ? 'Frasco' : 'Frasco · por encargo (3 a 5 días)';
+    boton.hidden = p.estado === 'agotado';
   }
 
   medir();
-  window.addEventListener('resize', () => { medir(); ingredientes?.medir(); });
+  window.addEventListener('resize', medir);
 
   if (reducir) {
-    // Sin movimiento: una sola imagen del interior y todo el contenido visible, sin fijar la pantalla.
+    // Sin movimiento: todo visible de una vez, sin fijar la pantalla y sin videos (queda la imagen de cada uno)
     seccion.classList.add('inmersion--quieta');
-    const pintarQuieto = () => {
-      medir();
-      ctx.setTransform(escala, 0, 0, escala, 0, 0);
-      fondo(0);
-      particulasDibujo(0);
-    };
-    // Se vuelve a pintar si cambia el alto (por ejemplo cuando termina de cargar la foto)
-    new ResizeObserver(pintarQuieto).observe(canvas);
+    actualizarPrecio();
   } else {
-    // Solo se dibuja mientras la sección está en pantalla
     new IntersectionObserver(([e]) => (e.isIntersecting ? encender() : apagar()), { rootMargin: '100px' }).observe(seccion);
-    // Se espera a que la portada termine de cargar, para no quitarle velocidad a lo primero que se ve
+    // El primer video se empieza a bajar cuando la sección se acerca (después de que cargó la portada)
     const vigilarCercania = () => {
       const cerca = new IntersectionObserver(([e]) => {
         if (!e.isIntersecting) return;
         cerca.disconnect();
-        cargarIngredientes();
-      }, { rootMargin: '1200px' });
+        cargarVideo(videos[0]);
+        actualizarPrecio();
+      }, { rootMargin: '1000px' });
       cerca.observe(seccion);
     };
     if (document.readyState === 'complete') vigilarCercania();
     else window.addEventListener('load', vigilarCercania, { once: true });
-    document.addEventListener('visibilitychange', () => (document.hidden ? apagar() : seccion.getBoundingClientRect().bottom > 0 && encender()));
+    document.addEventListener('visibilitychange', () => { if (document.hidden) apagar(); });
 
     gsap.registerPlugin(ScrollTrigger);
+    const capas = videos.map(() => ({ o: 0 }));
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: { trigger: seccion, start: 'top top', end: 'bottom bottom', scrub: 0.6 },
+      onUpdate: () => {
+        // Se ve (y se reproduce) el video que más se nota en este momento
+        let mayor = 0, cual = -1;
+        capas.forEach((c, i) => { videos[i].style.opacity = String(c.o); if (c.o > mayor) { mayor = c.o; cual = i; } });
+        if (cual >= 0 && mayor > 0.05 && cuadro) mostrarVideo(cual);
+      },
     });
-    // 1. La cámara se acerca al líquido del frasco
-    tl.to('.inmersion__intro', { opacity: 0, y: -40, duration: 0.9 }, 0.2)
-      .fromTo('.inmersion__frasco', { scale: 1 }, { scale: 16, duration: 3.4, ease: 'power3.in' }, 0)
-      .to('.inmersion__liquido', { opacity: 1, duration: 1 }, 1.7)
-      .to('.inmersion__frasco', { opacity: 0, filter: 'blur(10px)', duration: 0.7 }, 2.2)
-      .fromTo('.inmersion__3d', { opacity: 0 }, { opacity: 1, duration: 0.8 }, 2.5)
-      .to(estado, { avance: 1, duration: 7 }, 3);
 
-    // 2. Las notas pasan hacia la cámara, una etapa tras otra
+    // 1. La cámara se acerca al frasco y entra en el líquido dorado
+    tl.to('.inmersion__intro', { opacity: 0, y: -40, duration: 0.9 }, 0.2)
+      .fromTo('.inmersion__frasco', { scale: 1 }, { scale: 14, duration: 3.2, ease: 'power3.in' }, 0)
+      .to(capas[0], { o: 1, duration: 1 }, 1.6)
+      .to('.inmersion__frasco', { opacity: 0, filter: 'blur(10px)', duration: 0.7 }, 2.1);
+
+    // 2. Cada etapa: su video aparece encima del anterior y sus notas pasan hacia la cámara
     seccion.querySelectorAll<HTMLElement>('.inmersion__etapa').forEach((etapa, i) => {
-      const inicio = 3.5 + i * 1.9;
-      tl.fromTo(etapa.querySelector('.inmersion__etapa-nombre'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, inicio)
-        .to(etapa.querySelector('.inmersion__etapa-nombre'), { opacity: 0, duration: 0.4 }, inicio + 1.5);
+      const inicio = 3.4 + i * 2;
+      tl.to(capas[i + 1], { o: 1, duration: 0.6 }, inicio - 0.3)
+        .set(capas[i], { o: 0 }, inicio + 0.3)
+        .fromTo(etapa.querySelector('.inmersion__etapa-nombre'), { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4 }, inicio)
+        .to(etapa.querySelector('.inmersion__etapa-nombre'), { opacity: 0, duration: 0.4 }, inicio + 1.6);
       etapa.querySelectorAll('.inmersion__nota').forEach((nota, j) => {
         const t = inicio + j * 0.3;
         tl.fromTo(nota, { opacity: 0, scale: 0.35, filter: 'blur(6px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.7 }, t)
-          .to(nota, { opacity: 0, scale: 2.6, filter: 'blur(10px)', duration: 0.7, ease: 'power1.in' }, t + 0.8);
+          .to(nota, { opacity: 0, scale: 2.4, filter: 'blur(10px)', duration: 0.7, ease: 'power1.in' }, t + 0.9);
       });
     });
 
-    // 3. Cierre
-    tl.fromTo('.inmersion__final', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, 9.3).to({}, { duration: 0.5 });
+    // 3. Cierre: el video se oscurece y aparece el perfume para pedirlo
+    tl.to('.inmersion__oscuro', { opacity: 1, duration: 0.8 }, 9.5)
+      .fromTo('.inmersion__final', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, 9.7)
+      .to({}, { duration: 0.6 });
   }
 </script>
 
 <style>
-  .inmersion { position: relative; height: 520vh; background: var(--negro); }
+  .inmersion { position: relative; height: 560vh; background: var(--negro); }
   .inmersion__escena { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; display: grid; place-items: center; }
 
-  .inmersion__liquido,
-  .inmersion__3d { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
-  .inmersion--quieta .inmersion__3d { display: none; }
+  .inmersion__videos { position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 45%, #3a2410, #0d0d0d 75%); }
+  .inmersion__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+  /* Viñeta negra en los bordes: el video se funde con el negro mate de la marca y el texto se lee */
+  .inmersion__velo {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(13, 13, 13, 0.75) 100%), rgba(13, 13, 13, 0.18);
+  }
+  .inmersion__oscuro { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(70% 60% at 50% 50%, rgba(13, 13, 13, 0.72), rgba(13, 13, 13, 0.9)); }
+  .inmersion__polvo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 
   .inmersion__intro { position: absolute; top: 11%; left: 0; right: 0; text-align: center; padding-inline: var(--e-5); z-index: 2; }
   .inmersion__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) auto 0; max-width: 16ch; }
-  .inmersion__titulo em { color: var(--oro-claro); }
+  /* "por dentro" en oro metálico, como la lámina del logo */
+  .inmersion__titulo em { background: var(--oro-lamina); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
-  .inmersion :global(.inmersion__frasco) {
+  .inmersion__frasco {
     position: relative;
-    height: 50svh;
+    z-index: 1;
+    height: 52svh;
     width: auto;
     margin-top: 30svh;
-    transform-origin: 50% 51%; /* el líquido ámbar, encima de la etiqueta */
+    transform-origin: 50% 46%; /* el pecho del frasco, donde se ve el líquido */
     will-change: transform;
-    filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 40px 60px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 60px rgba(201, 165, 92, 0.25));
   }
 
   .inmersion__etapa { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  .inmersion__etapa-nombre { position: absolute; top: 12%; left: 0; right: 0; text-align: center; color: rgba(255, 244, 220, 0.85); opacity: 0; }
+  /* Nombre de la etapa en una píldora oscura de vidrio: se lee sobre cualquier video */
+  .inmersion__etapa-nombre {
+    position: absolute; top: 12%; left: 50%; translate: -50% 0; margin: 0; opacity: 0;
+    padding: var(--e-2) var(--e-4); border: 1px solid rgba(201, 165, 92, 0.45); border-radius: 999px;
+    background: rgba(13, 13, 13, 0.55); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    color: var(--oro-claro); font-size: 0.875rem; white-space: nowrap;
+  }
   .inmersion__nota {
     position: absolute;
     left: calc(50% + (var(--x) - 50%) * var(--abre, 1));
@@ -289,34 +292,44 @@ const puestos = [
     font-family: var(--serif);
     font-style: italic;
     font-size: clamp(2.75rem, 1.5rem + 5vw, 6.5rem);
-    color: #fff6e6;
-    text-shadow: 0 4px 30px rgba(60, 25, 0, 0.55);
+    font-weight: 600;
+    color: #fffaf0;
+    /* Sombra en capas: borde nítido cerca de la letra y un halo oscuro amplio para despegarla del video */
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.55), 0 4px 18px rgba(0, 0, 0, 0.75), 0 0 48px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
     opacity: 0;
     will-change: transform, opacity, filter;
   }
+  /* Sombra suave detrás de cada palabra */
+  .inmersion__nota::before {
+    content: ''; position: absolute; inset: -35% -18%; z-index: -1;
+    background: radial-gradient(closest-side, rgba(13, 13, 13, 0.55), transparent);
+  }
 
   .inmersion__final { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--e-4); text-align: center; padding-inline: var(--e-5); opacity: 0; z-index: 4; }
-  .inmersion__perfume { margin: 0; font-size: 0.75rem; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: rgba(255, 244, 220, 0.8); }
-  .inmersion__frase { margin: 0 0 var(--e-3); font-family: var(--serif); font-size: var(--t-h2); line-height: 1.05; color: var(--blanco); max-width: 14ch; text-shadow: 0 4px 30px rgba(40, 15, 0, 0.6); }
+  .inmersion__perfume { margin: 0; font-size: 0.75rem; letter-spacing: var(--tracking-etiqueta); text-transform: uppercase; color: var(--oro-claro); }
+  .inmersion__frase { margin: 0; font-family: var(--serif); font-size: var(--t-h2); line-height: 1.05; color: var(--blanco); max-width: 16ch; }
+  .inmersion__precio { margin: 0 0 var(--e-2); color: var(--texto); }
+  .inmersion__precio [data-elixir-precio] { font-family: var(--serif); font-size: 1.75rem; color: var(--oro-claro); }
+  .inmersion__acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-3); }
 
   @media (max-width: 767px) {
-    .inmersion { height: 440vh; }
-    .inmersion :global(.inmersion__frasco) { height: 44svh; margin-top: 28svh; }
+    .inmersion { height: 480vh; }
+    .inmersion__frasco { height: 44svh; margin-top: 28svh; }
     .inmersion__nota { --abre: 0.3; font-size: 2.5rem; }
+    .inmersion__acciones { flex-direction: column; width: 100%; max-width: 20rem; }
   }
 
   /* Sin movimiento: se muestra todo de una vez, sin fijar la pantalla */
   .inmersion--quieta { height: auto; }
   .inmersion--quieta .inmersion__escena { position: relative; height: auto; min-height: 100svh; padding-block: var(--e-9); gap: var(--e-6); }
-  .inmersion--quieta .inmersion__liquido { opacity: 1; }
-  .inmersion--quieta .inmersion__intro .etiqueta,
-  .inmersion--quieta .inmersion__titulo em { color: #fff6e6; }
+  .inmersion--quieta .inmersion__video[data-escena='3'] { opacity: 1; }
+  .inmersion--quieta .inmersion__oscuro { opacity: 1; }
   .inmersion--quieta .inmersion__intro,
   .inmersion--quieta .inmersion__etapa,
   .inmersion--quieta .inmersion__final { position: relative; inset: auto; top: auto; opacity: 1; }
-  .inmersion--quieta :global(.inmersion__frasco) { margin-top: 0; height: 40svh; }
+  .inmersion--quieta .inmersion__frasco { margin-top: 0; height: 40svh; }
   .inmersion--quieta .inmersion__etapa { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-3); }
-  .inmersion--quieta .inmersion__etapa-nombre { position: static; width: 100%; opacity: 1; }
+  .inmersion--quieta .inmersion__etapa-nombre { position: static; translate: none; opacity: 1; flex-basis: auto; }
   .inmersion--quieta .inmersion__nota { position: static; translate: none; opacity: 1; font-size: 2rem; }
 </style>
