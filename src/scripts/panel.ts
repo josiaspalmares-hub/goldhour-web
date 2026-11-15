@@ -1,6 +1,4 @@
-// Panel de socios: entrar, ver qué funciona en la web y cambiar el catálogo.
-// Quién puede leer o cambiar qué lo deciden las reglas RLS de Supabase (solo los socios editan y ven la medición);
-// este archivo solo arma la pantalla. Todo texto que viene de la base se pone con textContent, nunca como HTML.
+// Panel de socios. Los permisos los decide RLS; el texto de la base va con textContent, nunca como HTML.
 import { createClient, type Session } from '@supabase/supabase-js';
 import { config, ESTADOS, type Estado, type PerfumeCatalogo } from './supabase';
 
@@ -31,7 +29,7 @@ function aviso(texto: string, tipo: 'ok' | 'error' = 'ok') {
   caja.dataset.t = String(setTimeout(() => caja.classList.remove('visible'), 3500));
 }
 
-// Los mensajes de Supabase vienen en inglés y a veces con detalles internos: se traducen a algo claro.
+// Traducir errores de Supabase sin detalles internos
 function mensajeAuth(error: { message: string; status?: number }) {
   const m = error.message.toLowerCase();
   if (m.includes('invalid login')) return 'Correo o contraseña incorrectos.';
@@ -42,7 +40,7 @@ function mensajeAuth(error: { message: string; status?: number }) {
 }
 
 // ---------- Entrar ----------
-// No hay registro público: los logins los crea un socio desde la sección Logins.
+// Sin registro público: los logins los crea un socio
 let fallos = 0;
 
 function prepararEntrada() {
@@ -66,7 +64,7 @@ function prepararEntrada() {
 
     if (r.error) {
       error.textContent = /banned/i.test(r.error.message) ? 'Este login está pausado. Pídele a un socio que lo active.' : mensajeAuth(r.error);
-      // Freno extra en el navegador; el límite real lo pone Supabase Auth en el servidor.
+      // El límite real lo pone Supabase Auth
       fallos++;
       const espera = fallos >= 5 ? 30 : 0;
       if (espera) {
@@ -149,7 +147,7 @@ async function cargarResumen() {
     ['visitas', r.visitas], ['vistas', r.vistas], ['busquedas', r.busquedas], ['agregados', r.agregados], ['whatsapp', r.whatsapp],
   ];
   for (const [k, v] of kpis) $(`[data-kpi=${k}]`).textContent = numero(v);
-  // Cuántas visitas terminan en un pedido por WhatsApp: el número que más importa
+  // Conversión a pedido
   $('[data-kpi=conversion]').textContent = r.visitas ? `${Math.round((r.whatsapp / r.visitas) * 1000) / 10}%` : '—';
 
   pintarGrafica(r.por_dia);
@@ -180,7 +178,7 @@ function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string,
   return n;
 }
 
-// Visitas como área y clics a WhatsApp como barras, un punto por día (los días sin datos cuentan como 0)
+// Gráfica por día (días sin datos = 0)
 function pintarGrafica(porDia: Resumen['por_dia']) {
   const caja = $('[data-grafica]');
   const mapa = new Map(porDia.map((d) => [d.dia, d]));
@@ -189,7 +187,7 @@ function pintarGrafica(porDia: Resumen['por_dia']) {
     const d = mapa.get(diaCaracas(fecha));
     return { fecha, visitas: d?.visitas ?? 0, whatsapp: d?.whatsapp ?? 0 };
   });
-  // El ancho sigue a la tarjeta para que las letras del eje no se encojan en el teléfono
+  // Ancho de la tarjeta para no encoger el eje
   const W = Math.max(300, caja.clientWidth || 720), H = W < 500 ? 200 : 240, pad = { t: 16, r: 8, b: 28, l: 32 };
   const max = Math.max(4, ...serie.map((s) => Math.max(s.visitas, s.whatsapp)));
   const x = (i: number) => pad.l + (serie.length === 1 ? 0 : (i / (serie.length - 1)) * (W - pad.l - pad.r));
@@ -325,7 +323,7 @@ async function guardarFila(p: PerfumeCatalogo, cambios: Pick<PerfumeCatalogo, 'p
   boton.disabled = true; boton.textContent = 'Guardando…';
   const { data, error } = await sb.from('perfumes').update(cambios).eq('id', p.id).select('id');
   boton.textContent = 'Guardar';
-  // Sin error pero sin filas: la regla RLS no dejó cambiarlo (cuenta sin permiso de socio)
+  // Sin filas: RLS lo bloqueó
   if (error || !data?.length) { boton.disabled = false; aviso('No se pudo guardar. Revisa tu conexión o tu acceso.', 'error'); return; }
   Object.assign(p, cambios);
   li.classList.remove('p-fila--sucia');
@@ -393,15 +391,14 @@ function prepararNuevo() {
 }
 
 // ---------- Logins ----------
-// Crear y cambiar cuentas necesita la clave secreta: lo hace la función socios-logins en el servidor de Supabase,
-// que revisa que quien la llama sea socio. Aquí solo se piden los cambios.
+// Las cuentas las cambia la función socios-logins en el servidor (necesita la clave secreta)
 interface Login { id: string; nombre: string; correo: string; creado: string | null; ultimo_ingreso: string | null; activo: boolean; soy_yo: boolean }
 
 class FalloLogins extends Error {}
 async function pedirLogins(cuerpo: Record<string, unknown>): Promise<Login[]> {
   const { data, error } = await sb.functions.invoke('socios-logins', { body: cuerpo });
   if (error) {
-    // La función responde { error: 'mensaje en español' }; si no se puede leer, mensaje general
+    // { error } en español o mensaje general
     const respuesta = (error as { context?: unknown }).context;
     let mensaje = 'No se pudo conectar. Revisa tu conexión.';
     if (respuesta instanceof Response) {
@@ -474,7 +471,7 @@ async function accionLogin(boton: HTMLButtonElement, cuerpo: Record<string, unkn
   }
 }
 
-// Un mismo formulario para agregar, cambiar contraseña o cambiar nombre
+// Formulario para agregar, contraseña o nombre
 type ModoLogin = 'nuevo' | 'clave' | 'nombre';
 let editando: { modo: ModoLogin; login?: Login } = { modo: 'nuevo' };
 function abrirLogin(modo: ModoLogin, login?: Login) {
@@ -549,6 +546,6 @@ export function iniciarPanel() {
   $('[data-p-estado]').addEventListener('change', () => { mostrados = 30; pintarPerfumes(); });
   $('[data-p-mas]').addEventListener('click', () => { mostrados += 30; pintarPerfumes(); });
 
-  // onAuthStateChange avisa al cargar (sesión guardada o ninguna) y cada vez que se entra o sale
+  // Avisa al cargar y al entrar o salir
   sb.auth.onAuthStateChange((_evento, sesion) => { setTimeout(() => alCambiarSesion(sesion), 0); });
 }

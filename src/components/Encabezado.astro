@@ -26,7 +26,7 @@ const enlaces = [
 </header>
 
 <script>
-  // El fondo del menú aparece solo cuando dejas atrás la parte de arriba de la portada.
+  // Fondo del menú al bajar
   const encabezado = document.querySelector('.encabezado');
   const marcar = () => encabezado?.classList.toggle('encabezado--fijo', window.scrollY > 40);
   marcar();

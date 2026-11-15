@@ -1,5 +1,4 @@
-// Pedido del cliente: vive en el navegador de quien lo arma (no se envía a ningún servidor).
-// Se guarda en localStorage para no perderlo si recarga la página.
+// Pedido en localStorage (no va a ningún servidor)
 
 export interface Linea {
   clave: string; // id del perfume + tamaño, ej. "ventana:5ml"
@@ -9,7 +8,7 @@ export interface Linea {
   tamano: string;
   precio: number;
   cantidad: number;
-  // Decants: los tamaños que se pueden elegir, para cambiarlo desde el pedido.
+  // Tamaños del decant
   opciones?: { tamano: string; precio: number }[];
 }
 
@@ -21,7 +20,7 @@ function leerGuardado(): Linea[] {
   try {
     crudo = localStorage.getItem(LLAVE);
   } catch (error) {
-    // Navegador en modo privado o con el almacenamiento bloqueado: el pedido vive solo en esta visita.
+    // Sin almacenamiento: solo esta visita
     console.warn('No se pudo leer el pedido guardado', error);
     return [];
   }
@@ -60,8 +59,7 @@ export const pedido = {
     guardar();
   },
 
-  // Cambiar el tamaño de una línea (por ejemplo de 5 ml a frasco). Si ya había una línea con ese
-  // tamaño del mismo perfume, se juntan en una sola.
+  // Cambiar tamaño; si ya existe esa línea, se juntan
   cambiarTamano(clave: string, tamano: string) {
     const linea = lineas.find((l) => l.clave === clave);
     const opcion = linea?.opciones?.find((o) => o.tamano === tamano);

@@ -1,6 +1,6 @@
 import type { ImageMetadata } from 'astro';
 
-// Todas las fotos recortadas de src/assets/perfumes, buscadas por el id del perfume.
+// Fotos por id del perfume
 const archivos = import.meta.glob<{ default: ImageMetadata }>('../assets/perfumes/*.png', { eager: true });
 
 export function fotoDe(id: string): ImageMetadata {

@@ -28,7 +28,7 @@ import { fotoDe } from '../data/fotos';
 
           <div class="decant__info">
             <p class="etiqueta">{p.casa}</p>
-            <!-- Toda la tarjeta abre la ficha (menos los tamaños y "Agregar", que van por encima) -->
+            <!-- Toda la tarjeta abre la ficha, menos tamaños y "Agregar" -->
             <h3 class="decant__nombre"><button type="button" class="decant__abrir" data-abrir-ficha={p.id} aria-label={`${p.nombre}: ver la ficha`}>{p.nombre}</button></h3>
             <p class="decant__frase">{p.frase}</p>
             <SelectorTamano perfume={p} grupo={`tam-${p.id}`} />
@@ -77,7 +77,7 @@ import { fotoDe } from '../data/fotos';
     gap: var(--e-8) var(--e-7);
   }
 
-  /* Tarjeta ancha: el frasco original con el frasquito al frente, y a su lado la información. */
+  /* Tarjeta ancha */
   .decant { position: relative; display: grid; grid-template-columns: 0.9fr 1.1fr; gap: var(--e-5); align-items: center; cursor: pointer; }
   .decant__abrir { all: unset; cursor: pointer; transition: color 0.2s; }
   .decant__abrir::after { content: ''; position: absolute; inset: 0; border-radius: var(--radio); }
@@ -103,10 +103,10 @@ import { fotoDe } from '../data/fotos';
     filter: drop-shadow(0 16px 14px rgba(0, 0, 0, 0.28));
     transition: transform 0.4s var(--ease-salida), translate 0.55s var(--ease-salida);
   }
-  /* Al lado del perfume, paradito, el frasquito del tamaño elegido (5 ml o 10 ml). */
+  /* Frasquito del tamaño elegido */
   .decant__frasquitos { position: absolute; right: 6%; bottom: 12%; width: 16%; height: 66%; }
   .decant__frasquitos :global(.frasquitos) { inset: 0; }
-  /* Con el frasco completo no hay frasquito: el perfume se corre al centro para no dejar el hueco. */
+  /* Frasco completo: perfume al centro */
   .decant[data-elegido^='Frasco'] .decant__foto :global(.decant__frasco) { translate: 13.6% 0; }
   .decant:hover .decant__foto :global(.decant__frasco) { transform: translateY(-4px); }
   @media (prefers-reduced-motion: reduce) {

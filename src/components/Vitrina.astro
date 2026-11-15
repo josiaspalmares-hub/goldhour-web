@@ -4,7 +4,7 @@ import Ficha from './Ficha.astro';
 import { frascos } from '../data/perfumes';
 import { fotoDe } from '../data/fotos';
 
-// En "Todos" se alternan los de él y los de ella para que la vitrina se vea pareja
+// "Todos": alternar él y ella
 const deEl = frascos.filter((p) => p.para !== 'Ella');
 const deElla = frascos.filter((p) => p.para === 'Ella');
 const vitrina = Array.from({ length: Math.max(deEl.length, deElla.length) }, (_, i) => [deEl[i], deElla[i]]).flat().filter((p) => p !== undefined);
@@ -41,7 +41,7 @@ const filtros = [
               <Image src={fotoDe(p.foto ?? p.id)} alt="" width={420} format="webp" loading="lazy" />
             </span>
             <p class="etiqueta tarjeta__casa">{p.casa}</p>
-            <!-- Toda la tarjeta abre la ficha: el botón del nombre se estira sobre ella (menos sobre "Agregar") -->
+            <!-- Toda la tarjeta abre la ficha, menos "Agregar" -->
             <h3 class="tarjeta__nombre"><button type="button" class="tarjeta__abrir" data-abrir-ficha={p.id} aria-label={`${p.nombre}: ver la ficha`}>{p.nombre}</button></h3>
             <p class="tarjeta__detalle">{p.concentracion} · {tamano.etiqueta}</p>
             <p class="tarjeta__precio">${tamano.precio}</p>
@@ -86,7 +86,7 @@ const filtros = [
 <script>
   import '../scripts/tienda';
 
-  // Filtros: muestran solo los perfumes para él, para ella o unisex.
+  // Filtros
   const botones = document.querySelectorAll<HTMLButtonElement>('.vitrina__filtro');
   const tarjetas = document.querySelectorAll<HTMLElement>('.vitrina .tarjeta');
   const vacio = document.querySelector<HTMLElement>('.vitrina__vacio');
@@ -143,7 +143,7 @@ const filtros = [
   .tarjeta:hover .tarjeta__abrir { color: var(--oro-claro); }
   .tarjeta[hidden] { display: none; }
 
-  /* Cada frasco sobre su base, con la luz cálida desde la izquierda. */
+  /* Base y luz */
   .tarjeta__foto {
     position: relative;
     display: block;
@@ -159,7 +159,7 @@ const filtros = [
       var(--negro-2);
     cursor: pointer;
   }
-  /* Todos los frascos en un cuadro del mismo tamaño, apoyados abajo sobre la base. */
+  /* Cuadro igual para todos los frascos */
   .tarjeta__foto img {
     position: absolute;
     inset: 14% 16% 9%;
@@ -194,7 +194,7 @@ const filtros = [
     .tarjeta__precio { font-size: 1.25rem; }
 
 
-    /* En el teléfono el precio y el botón de comprar quedan fijos abajo de la ficha. */
+    /* Precio y botón fijos abajo */
     .ficha-comprar {
       position: sticky;
       bottom: 0;

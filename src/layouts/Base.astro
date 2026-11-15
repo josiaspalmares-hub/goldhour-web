@@ -4,7 +4,7 @@ import '../styles/tokens.css';
 interface Props {
   titulo: string;
   descripcion: string;
-  /** Páginas privadas (panel de socios): que Google no las muestre. */
+  /** noindex para páginas privadas */
   noindex?: boolean;
   colorTema?: string;
 }
@@ -28,7 +28,7 @@ const imagen = new URL('/compartir.jpg', Astro.site);
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
-    <!-- Vista previa al compartir el enlace por WhatsApp, Instagram o Facebook -->
+    <!-- Vista previa al compartir -->
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="es_VE" />
     <meta property="og:site_name" content="Goldhour" />

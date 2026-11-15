@@ -1,4 +1,4 @@
-// Comportamiento compartido de la tienda: abrir fichas, agregar al pedido y el contador del menú.
+// Fichas, agregar al pedido y contador
 import { pedido } from './pedido';
 import { medir, medirVisita } from './medir';
 
@@ -14,7 +14,7 @@ function abrirFicha(id: string) {
   }
 }
 
-// Botones "Ver ficha" y foto de cada perfume.
+// Abrir ficha
 document.addEventListener('click', (e) => {
   const objetivo = e.target as HTMLElement;
 
@@ -30,14 +30,14 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  // Tocar fuera de la caja cierra la ficha.
+  // Clic fuera cierra
   if (objetivo instanceof HTMLDialogElement && objetivo.open) objetivo.close();
 
   const agregar = objetivo.closest<HTMLButtonElement>('[data-agregar]');
   if (agregar) agregarDesde(agregar);
 });
 
-// Los enlaces #id (por ejemplo, "Ver ficha" de la portada) abren la ficha de ese perfume.
+// Enlaces #id abren la ficha
 function abrirDesdeHash() {
   const id = decodeURIComponent(location.hash.slice(1));
   if (id && fichaPorId(id)) abrirFicha(id);
@@ -47,7 +47,7 @@ abrirDesdeHash();
 
 function agregarDesde(boton: HTMLButtonElement) {
   const { id, nombre, casa } = boton.dataset;
-  // El tamaño sale del selector de la tarjeta (decants) o del propio botón (frascos).
+  // Tamaño del selector o del botón
   const radios = [...(boton.closest('[data-producto]')?.querySelectorAll<HTMLInputElement>('input[type="radio"]') ?? [])];
   const selector = radios.find((r) => r.checked);
   const tamano = selector?.value ?? boton.dataset.tamano;
@@ -70,8 +70,7 @@ function agregarDesde(boton: HTMLButtonElement) {
   }, 1600);
 }
 
-// Al elegir un tamaño (5 ml, 10 ml o frasco) se avisa a la tarjeta o ficha que lo contiene,
-// para que muestre el frasquito de ese tamaño junto al perfume.
+// Mostrar el frasquito del tamaño elegido
 document.addEventListener('change', (e) => {
   const opcion = e.target as HTMLInputElement;
   if (opcion.type !== 'radio') return;

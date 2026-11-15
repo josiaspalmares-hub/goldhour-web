@@ -1,6 +1,4 @@
-// Conexión con Supabase (catálogo, medición y panel de socios).
-// La clave es la "publishable": está hecha para usarse en el navegador; lo que cada quien puede leer o
-// escribir lo deciden las reglas RLS de la base de datos (ver la migración del proyecto en Supabase).
+// Supabase con la clave publicable; los permisos los decide RLS
 
 export const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL as string | undefined;
 export const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_KEY as string | undefined;
@@ -34,8 +32,7 @@ export const ESTADOS: Record<Estado, string> = {
   agotado: 'Agotado',
 };
 
-/** Todos los perfumes del catálogo (lectura pública). Lanza un error si la red o Supabase fallan.
- *  El catálogo y "Encuentra tu perfume" lo comparten: se pide una sola vez (y otra vez solo si falló). */
+/** Catálogo compartido: se pide una vez (y otra solo si falló). Lanza error si falla. */
 let pedido: Promise<PerfumeCatalogo[]> | null = null;
 export function leerCatalogo(): Promise<PerfumeCatalogo[]> {
   pedido ??= pedirCatalogo().catch((error) => { pedido = null; throw error; });
@@ -53,7 +50,7 @@ async function pedirCatalogo(): Promise<PerfumeCatalogo[]> {
   return res.json();
 }
 
-/** La descripción completa se arma igual para todos (así viene en Kyte). */
+/** Descripción como en Kyte */
 export function descripcion(p: Pick<PerfumeCatalogo, 'familia' | 'notas'>) {
   return [
     'Perfume 100% original y sellado de fábrica.',

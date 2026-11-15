@@ -1,6 +1,5 @@
 ---
-// "Encuentra tu perfume": el cliente mueve tres controles y la web le recomienda 3 perfumes de TODO el catálogo.
-// Los perfumes vienen de Supabase (los mismos del catálogo); la lógica para elegirlos está en scripts/recomendador.ts.
+// Encuentra tu perfume (lógica en scripts/recomendador.ts)
 import { WHATSAPP } from '../data/perfumes';
 ---
 
@@ -43,7 +42,7 @@ import { WHATSAPP } from '../data/perfumes';
     </div>
 
     <div class="encuentra__resultado">
-      <!-- La gota cambia de color: verde agua si es fresco, ámbar si es dulce, más oscura si es de noche. -->
+      <!-- Gota de color -->
       <div class="gota" aria-hidden="true"><span class="gota__brillo"></span></div>
       <p class="etiqueta encuentra__sub" aria-live="polite" data-resumen>Tus tres recomendados</p>
       <ol class="recomendados" role="list" data-recomendados aria-busy="true">
@@ -96,11 +95,11 @@ import { WHATSAPP } from '../data/perfumes';
     };
   }
 
-  // Lo visual responde al instante aunque el catálogo todavía esté llegando
+  // La gota responde aunque el catálogo no haya llegado
   function pintarControles(c: Criterios) {
     textoEstilo.textContent = c.estilo < 0.34 ? 'Dulce' : c.estilo > 0.66 ? 'Fresco' : 'Equilibrado';
     textoMomento.textContent = c.momento < 0.34 ? 'De día' : c.momento > 0.66 ? 'De noche' : 'Todo el día';
-    // Color de la gota: del ámbar dulce al verde agua fresco, y más profundo de noche.
+    // Color de la gota
     const base = mezcla([214, 150, 62], [120, 205, 190], c.estilo);
     gota.style.setProperty('--gota', `rgb(${mezcla(base, [70, 40, 20], c.momento * 0.45).join(',')})`);
   }
@@ -113,7 +112,7 @@ import { WHATSAPP } from '../data/perfumes';
       const img = el('img'); img.src = p.foto_url; img.alt = ''; img.width = 88; img.height = 88; img.loading = 'lazy'; img.decoding = 'async';
       foto.append(img);
     } else foto.append(el('span', 'reco__marca', casa(p.nombre)));
-    // Toda la tarjeta abre la ficha: el botón del nombre se estira sobre ella (menos sobre "Agregar")
+    // Toda la tarjeta abre la ficha, menos "Agregar"
     const nombre = el('h3', 'reco__nombre');
     const abrir = el('button', 'reco__abrir', p.nombre); abrir.type = 'button';
     abrir.setAttribute('aria-label', `${p.nombre}: ver la ficha`);
@@ -178,7 +177,7 @@ import { WHATSAPP } from '../data/perfumes';
   seccion.addEventListener('input', recomendarAhora);
   seccion.addEventListener('change', recomendarAhora);
   pintarControles(criterios());
-  // El catálogo se pide cuando la sección se acerca a la pantalla, para no frenar la portada
+  // Carga al acercarse, para no frenar la portada
   new IntersectionObserver(([e], o) => { if (e.isIntersecting) { o.disconnect(); cargar(); } }, { rootMargin: '600px' }).observe(seccion);
 </script>
 
@@ -215,13 +214,13 @@ import { WHATSAPP } from '../data/perfumes';
   input[type='range']:focus-visible { outline: 2px solid var(--oro); outline-offset: 4px; }
 
   .encuentra__resultado { position: relative; display: grid; gap: var(--e-4); }
-  /* Gota de perfume que toma el color de lo que eliges */
+  /* Gota */
   .gota {
     --gota: rgb(214, 150, 62);
     justify-self: center;
     width: 92px;
     height: 92px;
-    /* cuadrado con una esquina en punta y girado: queda la silueta de una gota */
+    /* cuadrado con una esquina en punta, girado */
     border-radius: 0 50% 50% 50%;
     rotate: 45deg;
     background:

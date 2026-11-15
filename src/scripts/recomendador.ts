@@ -1,12 +1,9 @@
-// "Encuentra tu perfume": recomienda los 3 mejores de TODO el catálogo según lo que la persona elige.
-// Cada perfume del catálogo trae su familia olfativa y sus notas; de ahí se calcula qué tan dulce, fresco
-// y de noche es (de 0 a 10) y se eligen los que más se parecen a lo pedido.
+// Recomendador: dulce, fresco y noche (0 a 10) a partir de la familia y las notas
 import type { PerfumeCatalogo } from './supabase';
 
 export interface Perfil { dulce: number; fresco: number; noche: number }
 
-// Cuánto suma cada palabra de las notas o la familia. Las de fondo y la familia pesan un poco más
-// porque son lo que más dura en la piel.
+// Peso por palabra; fondo y familia pesan más porque duran más en la piel
 const PESOS: Record<keyof Perfil, [string, number][]> = {
   dulce: [
     ['gourmand', 3], ['vainilla', 2.5], ['caramelo', 3], ['praline', 3], ['tonka', 2], ['miel', 2], ['cacao', 2],
@@ -32,7 +29,7 @@ const PESOS: Record<keyof Perfil, [string, number][]> = {
 
 const plano = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-// Suma con rendimiento decreciente: muchas notas parecidas no disparan el número
+// Rendimiento decreciente
 const escala = (s: number) => 10 * (1 - Math.exp(-s / 4.5));
 
 export function perfilDe(p: Pick<PerfumeCatalogo, 'nombre' | 'familia' | 'notas'>): Perfil {
@@ -43,7 +40,7 @@ export function perfilDe(p: Pick<PerfumeCatalogo, 'nombre' | 'familia' | 'notas'
     textos.reduce((total, [texto, peso]) => total + lista.reduce((s, [palabra, v]) => s + (` ${texto} `.includes(palabra) ? v * peso : 0), 0), 0);
 
   const nombre = plano(p.nombre);
-  // La concentración cambia el momento: un Eau de Toilette o una colonia son más de día; un Parfum o Elixir, de noche
+  // EDT y colonia: día; Parfum y Elixir: noche
   const ajusteNoche = /elixir|intense|intenso|extrait|parfum \d|le parfum|absolu/.test(nombre) ? 1.5
     : /cologne|colonia|eau fraiche|sport|fresh/.test(nombre) ? -1.5
     : /eau de toilette/.test(nombre) ? -0.6 : 0;
@@ -62,7 +59,7 @@ export interface Criterios {
 }
 
 const CATEGORIA = { 'Él': 'Caballero', Ella: 'Dama', Unisex: 'Unisex' } as const;
-// "Lattafa Asad Eau de Parfum 100 ml" y el de 200 ml son el mismo perfume: no recomendar los dos
+// Mismo perfume en otro tamaño cuenta una vez
 const linea = (nombre: string) => plano(nombre).replace(/\b(eau de (parfum|toilette|cologne)|parfum|extrait)\b.*$/, '').trim();
 
 export function recomendar(catalogo: PerfumeCatalogo[], c: Criterios, cuantos = 3) {
@@ -74,14 +71,14 @@ export function recomendar(catalogo: PerfumeCatalogo[], c: Criterios, cuantos = 
     .map((p) => {
       const f = perfilDe(p);
       let distancia = Math.abs(f.dulce - objetivo.dulce) + Math.abs(f.fresco - objetivo.fresco) + Math.abs(f.noche - objetivo.noche) * 0.9;
-      // Pequeño empujón a lo que se entrega ya y a los favoritos de la tienda
+      // Empujón a disponibles y favoritos
       if (p.estado === 'disponible') distancia -= 1.2;
       if (p.destacado) distancia -= 0.6;
       return { p, distancia };
     })
     .sort((a, b) => a.distancia - b.distancia);
 
-  // Variedad: no repetir el mismo perfume en otro tamaño ni más de uno de la misma casa
+  // Una por casa
   const elegidos: PerfumeCatalogo[] = [];
   const lineas = new Set<string>(), casas = new Set<string>();
   for (const { p } of puntuados) {

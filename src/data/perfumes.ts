@@ -1,6 +1,5 @@
-// Catálogo de la web. Para agregar un perfume: copia un bloque, cambia los datos y pon su foto
-// recortada (PNG con fondo transparente, mínimo 1.200 px de alto) en src/assets/perfumes/<id>.png.
-// Precios en dólares, sacados de "Catalogo Perfumes $.xlsx" (PRECIO FINAL A VENDER).
+// Perfumes de la vitrina. Foto: PNG sin fondo, mínimo 1.200 px de alto, en src/assets/perfumes/<id>.png.
+// Precios de "Catalogo Perfumes $.xlsx" (PRECIO FINAL A VENDER).
 
 export type Nivel = 1 | 2 | 3 | 4 | 5;
 
@@ -22,7 +21,7 @@ export interface Tamano {
   precio: number;
 }
 
-// Perfil para "Encuentra tu perfume": cuán dulce, fresco y de noche es, de 0 a 10.
+// Perfil de 0 a 10
 export interface Perfil {
   dulce: number;
   fresco: number;
@@ -39,7 +38,7 @@ export interface Perfume {
   ficha: Ficha;
   perfil: Perfil;
   tamanos: Tamano[];
-  /** Si comparte foto con otro perfume (el mismo frasco en vitrina y en decants), el id de esa foto. */
+  /** id de la foto compartida con otro perfume */
   foto?: string;
 }
 
@@ -343,11 +342,11 @@ export const decants: Perfume[] = [
     perfil: { dulce: 1, fresco: 10, noche: 1 },
     tamanos: decant('200 ml', 50),
   },
-  // Los que más piden probar antes del frasco: el mismo perfume de la vitrina, en decant.
+  // Decants más pedidos
   ...['bir-uomo-intense', 'invictus', 'hawas-tropical', 'good-girl', 'le-male-le-parfum'].map((id) => comoDecant(id)),
 ];
 
-/** El perfume de la vitrina convertido en decant: mismo perfume y foto, con los tamaños de prueba. */
+/** Perfume de la vitrina como decant */
 function comoDecant(id: string): Perfume {
   const p = frascos.find((f) => f.id === id);
   if (!p) throw new Error(`No existe el perfume ${id} en la vitrina`);

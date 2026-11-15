@@ -1,4 +1,4 @@
-// Tasa euro oficial del BCV del día, desde la misma fuente que usa la hoja de precios de Goldhour.
+// Tasa euro BCV (misma fuente que la hoja de precios)
 const FUENTE = 'https://ve.dolarapi.com/v1/euros/oficial';
 
 export interface Tasa {
@@ -19,7 +19,7 @@ export async function obtenerTasaEuro(): Promise<Tasa> {
 
   const datos: { promedio?: unknown; fechaActualizacion?: unknown } = await respuesta.json();
   const valor = Number(datos.promedio);
-  // Un valor fuera de rango es un error de la fuente, no una tasa: mejor no cobrar con él.
+  // Fuera de rango: error de la fuente
   if (!Number.isFinite(valor) || valor <= 0 || valor > 1_000_000) {
     throw new TasaNoDisponible(`Tasa recibida no válida: ${String(datos.promedio)}`);
   }

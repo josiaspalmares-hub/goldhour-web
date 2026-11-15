@@ -1,19 +1,18 @@
 ---
-// Pantalla de entrada: la G dorada se dibuja y la cortina se abre. Es solo CSS (no espera a nada),
-// dura ~1,2 s y sale una sola vez por visita, así no estorba a quien navega o vuelve a la página.
+// Pantalla de entrada: solo CSS, ~1,2 s, una vez por visita
 import monogramaSvg from '../assets/marca/monograma-G-oro.svg?raw';
 
-// pathLength=1 permite animar el trazo sin conocer el largo real de la G
+// pathLength=1: animar el trazo sin conocer su largo
 const monograma = monogramaSvg.replace('<path ', '<path pathLength="1" ');
 ---
 
 <script is:inline>
-  // Si ya la vio en esta visita, se marca antes de pintar para que no aparezca otra vez.
+  // Ya vista: se marca antes de pintar
   try {
     if (sessionStorage.getItem('gh-entrada')) document.documentElement.classList.add('entrada-vista');
     else sessionStorage.setItem('gh-entrada', '1');
   } catch (e) {
-    // Navegación privada estricta: sin memoria de visita, la entrada simplemente se muestra.
+    // Sin almacenamiento: se muestra igual
     if (!(e instanceof DOMException)) throw e;
   }
 </script>
@@ -36,7 +35,7 @@ const monograma = monogramaSvg.replace('<path ', '<path pathLength="1" ');
   :global(.entrada-vista) .cargador { display: none; }
   .cargador__g { width: min(34vw, 150px); }
   .cargador__g :global(svg) { display: block; width: 100%; height: auto; overflow: visible; }
-  /* La G se dibuja con un trazo dorado y luego se rellena */
+  /* Trazo y relleno de la G */
   .cargador__g :global(path) {
     stroke: var(--oro);
     stroke-width: 1.2;

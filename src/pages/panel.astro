@@ -1,11 +1,10 @@
 ---
-// Panel privado de los socios: medición de la web y cambios al catálogo. Estilo claro "vidrio líquido" en crema y oro.
+// Panel de socios
 import Base from '../layouts/Base.astro';
 import monograma from '../assets/marca/monograma-G-oro.svg';
 ---
 
 <Base titulo="Panel de socios · Goldhour" descripcion="Panel privado de Goldhour." noindex colorTema="#efe6d6">
-  <div class="fondo" aria-hidden="true"><span></span><span></span><span></span></div>
 
   <div class="panel-app">
     <!-- Cargando -->
@@ -246,15 +245,15 @@ import monograma from '../assets/marca/monograma-G-oro.svg';
 </script>
 
 <style is:global>
-  /* Solo existe en /panel. Tonos de la marca sobre crema: marfil, oro, tinta. */
+  /* Colores del panel */
   :root {
     --c-fondo: #efe6d6;
     --c-tinta: #1f1a14;
     --c-texto-2: #62574a; /* 5.6:1 sobre el crema */
-    --c-vidrio: rgba(255, 251, 243, 0.56);
-    --c-vidrio-borde: rgba(255, 255, 255, 0.78);
-    --c-sombra: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 18px 40px -22px rgba(122, 90, 30, 0.35);
-    --c-radio: 22px;
+    --c-vidrio: #fbf7ef;
+    --c-vidrio-borde: rgba(31, 26, 20, 0.1);
+    --c-sombra: 0 1px 2px rgba(31, 26, 20, 0.06);
+    --c-radio: 14px;
     --c-verde: #3f7d4e;
     --c-ambar: #a46a12;
     --c-rojo: #a23b2a;
@@ -263,22 +262,11 @@ import monograma from '../assets/marca/monograma-G-oro.svg';
   body::after { opacity: 0.035; mix-blend-mode: multiply; }
   [hidden] { display: none !important; }
 
-  /* Manchas de color borrosas detrás del vidrio */
-  .fondo { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
-  .fondo span { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.75; animation: deriva 28s ease-in-out infinite alternate; }
-  .fondo span:nth-child(1) { width: 46vw; height: 46vw; left: -10vw; top: -14vw; background: #e6cb82; }
-  .fondo span:nth-child(2) { width: 38vw; height: 38vw; right: -8vw; top: 18vh; background: #e9bf9a; animation-delay: -9s; }
-  .fondo span:nth-child(3) { width: 42vw; height: 42vw; left: 30vw; bottom: -22vw; background: #d8c3a0; animation-delay: -17s; }
-  @keyframes deriva { to { transform: translate3d(4vw, 3vw, 0) scale(1.08); } }
-  @media (prefers-reduced-motion: reduce) { .fondo span { animation: none; } }
-
   .panel-app { position: relative; z-index: 1; }
   .pantalla--centro { min-height: 100vh; display: grid; place-items: center; padding: var(--e-5) 16px; }
 
   .vidrio {
     background: var(--c-vidrio);
-    -webkit-backdrop-filter: blur(22px) saturate(160%);
-    backdrop-filter: blur(22px) saturate(160%);
     border: 1px solid var(--c-vidrio-borde);
     border-radius: var(--c-radio);
     box-shadow: var(--c-sombra);

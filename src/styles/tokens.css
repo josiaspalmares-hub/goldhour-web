@@ -1,4 +1,4 @@
-/* Tokens de Goldhour. Fuente: DESIGN.md. Todo color, tamaño o espacio de la web sale de aquí. */
+/* Tokens de Goldhour (DESIGN.md) */
 @import '@fontsource-variable/bodoni-moda';
 @import '@fontsource-variable/jost';
 
@@ -8,7 +8,7 @@
   --linea: rgba(201, 165, 92, 0.22);
   --oro: #c9a55c;
   --oro-claro: #e6cb82;
-  --oro-oscuro: #7a5a1e; /* etiquetas en oro sobre marfil: contraste 5:1 para que se lean bien */
+  --oro-oscuro: #7a5a1e; /* oro sobre marfil, contraste 5:1 */
   --oro-lamina: linear-gradient(180deg, #a98234 0%, #e6cb82 30%, #f7e6ae 46%, #d9b565 58%, #a57d2f 80%, #8a6624 100%);
   --marfil: #f2ece1;
   --blanco: #ffffff;
@@ -49,7 +49,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Grano sutil sobre el negro, igual que en los posts: el negro se ve mate, no plano. */
+/* Grano: negro mate */
 body::after {
   content: '';
   position: fixed;
@@ -107,7 +107,7 @@ a { color: inherit; }
 .boton--principal:hover { background: var(--oro-claro); border-color: var(--oro-claro); }
 .boton--oscuro { background: var(--tinta); color: var(--marfil); border: 1px solid var(--tinta); }
 .boton--oscuro:hover { background: #000; border-color: #000; }
-/* Confirmación breve al agregar al pedido (en cualquier sección). */
+/* Aviso al agregar */
 .boton.boton.agregado { background: var(--marfil); border-color: var(--oro); color: var(--negro); }
 .decants .boton.boton.agregado { background: var(--oro); border-color: var(--oro); color: var(--negro); }
 .boton--secundario { background: transparent; color: var(--texto); border: 1px solid var(--linea); }
@@ -118,5 +118,5 @@ a { color: inherit; }
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 
-/* Texto solo para lectores de pantalla (etiquetas de campos que ya se entienden a la vista) */
+/* Solo lectores de pantalla */
 .visualmente-oculto { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

@@ -1,6 +1,5 @@
 ---
-// Pedido del cliente: cantidades, entrega, forma de pago y total en Bs a tasa euro BCV.
-// No hay servidor: el pedido sale armado hacia el WhatsApp de Goldhour cuando el cliente lo envía.
+// Pedido: sale armado hacia el WhatsApp de Goldhour (sin servidor)
 import { WHATSAPP } from '../data/perfumes';
 
 const entregas = ['Delivery en Caracas', 'Envío nacional (MRW, Zoom o Tealca)'];
@@ -77,7 +76,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
   </div>
 </dialog>
 
-<!-- En el teléfono, una barra fija abajo recuerda el pedido cuando ya hay perfumes. -->
+<!-- Barra del pedido en el teléfono -->
 <button type="button" class="barra-pedido" data-abrir-pedido hidden>
   <span>Ver pedido (<span data-cuenta-pedido>0</span>)</span>
   <span data-barra-total>$0</span>
@@ -103,7 +102,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
   const bloqueTotal = $<HTMLElement>('[data-pedido-total]');
   const enviar = $<HTMLAnchorElement>('[data-enviar-pedido]');
   const barra = document.querySelector<HTMLButtonElement>('.barra-pedido')!;
-  // Cada perfume del pedido cuenta como un clic a WhatsApp, para saber cuáles se piden de verdad
+  // Medir cada perfume pedido
   enviar.addEventListener('click', () => pedido.lineas().forEach((l) => medir('whatsapp', { perfume: l.nombre, detalle: l.tamano })));
 
   function abrir() {
@@ -114,7 +113,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
     panel.close();
   }
 
-  // Botón "Pedido" del menú, barra del teléfono y enlaces #pedido.
+  // Abrir pedido
   document.addEventListener('click', (e) => {
     const t = e.target as HTMLElement;
     if (t.closest('[data-abrir-pedido], a[href="#pedido"]')) {
@@ -127,7 +126,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
     }
   });
 
-  // Cada línea se arma con textContent (nunca HTML), aunque los datos vengan del navegador del cliente.
+  // textContent, nunca HTML
   function linea(l: ReturnType<typeof pedido.lineas>[number]) {
     const li = document.createElement('li');
     li.className = 'pedido__linea';
@@ -164,7 +163,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
 
     li.append(info, cantidad, monto);
 
-    // Decants: elegir otro tamaño aquí mismo, sin borrar y volver a agregar.
+    // Cambiar tamaño del decant
     if (l.opciones && l.opciones.length > 1) {
       const tamanos = document.createElement('div');
       tamanos.className = 'pedido__tamanos';
@@ -192,7 +191,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
     subtotal.textContent = formatoUsd(pedido.totalUsd());
     barra.hidden = !hay;
     barra.querySelector('[data-barra-total]')!.textContent = formatoUsd(pedido.totalUsd());
-    // Si cambia el pedido, el total en Bs ya mostrado deja de valer: se vuelve al formulario.
+    // Si cambia el pedido, el total en Bs deja de valer
     mostrarTotal(false);
   }
 
@@ -273,7 +272,7 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
 </script>
 
 <style>
-  /* Panel lateral a la derecha (en el teléfono ocupa toda la pantalla). */
+  /* Panel lateral */
   .pedido {
     margin: 0 0 0 auto;
     width: min(460px, 100vw);
@@ -426,6 +425,6 @@ const pagos = ['Pago móvil', 'Transferencia en Bs', 'Zelle', 'Binance', 'Efecti
   }
   .barra-pedido[hidden] { display: none; }
   @media (min-width: 768px) { .barra-pedido { display: none; } }
-  /* Que la barra no tape el final de la página en el teléfono. */
+  /* Espacio para la barra */
   @media (max-width: 767px) { :global(body:has(.barra-pedido:not([hidden]))) { padding-bottom: 76px; } }
 </style>

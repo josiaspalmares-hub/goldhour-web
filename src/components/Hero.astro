@@ -6,7 +6,7 @@ import goodGirl from '../assets/perfumes/good-girl.png';
 import FrascoLuz from './FrascoLuz.astro';
 import { frascos, WHATSAPP } from '../data/perfumes';
 
-// Los tres frascos de la vitrina de la portada, en el orden izquierda · frente · derecha.
+// Frascos: izquierda · frente · derecha
 const fotos = { 'le-male-le-parfum': leParfum, 'khamrah-qahwa': khamrah, 'good-girl': goodGirl };
 const posiciones = ['izq', 'frente', 'der'] as const;
 const escena = (Object.keys(fotos) as (keyof typeof fotos)[]).map((id, i) => {
@@ -81,13 +81,12 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
   import { Flip } from 'gsap/Flip';
 
-  // En modo prueba (solo en la PC, nunca publicado) ?movimiento fuerza las animaciones
-  // aunque Windows tenga apagados los efectos de animación.
+  // ?movimiento fuerza las animaciones al probar en la PC
   const forzarMovimiento = import.meta.env.DEV && new URLSearchParams(location.search).has('movimiento');
   const reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches && !forzarMovimiento;
   const pasos = document.querySelectorAll('.hero__paso');
 
-  // Tocar un frasco de atrás lo pasa al frente; tocar el del frente lleva a su ficha.
+  // Toque: al frente o a la ficha
   gsap.registerPlugin(Flip);
   const frascosEscena = [...document.querySelectorAll<HTMLButtonElement>('.hero__frasco')];
   const etiqueta = document.querySelector<HTMLAnchorElement>('.hero__precio');
@@ -112,8 +111,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   };
   marcarBotones();
 
-  // La vitrina gira como una rueda: los tres frascos avanzan un puesto a la vez.
-  // Tocar el de la derecha: derecha → frente, frente → izquierda, izquierda → derecha (pasando por detrás).
+  // Vitrina giratoria: avanzan un puesto a la vez
   type Puesto = 'izq' | 'frente' | 'der';
   const puestoDe = (f: HTMLElement): Puesto =>
     f.classList.contains('hero__frasco--frente') ? 'frente' : f.classList.contains('hero__frasco--izq') ? 'izq' : 'der';
@@ -134,8 +132,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     actualizarEtiqueta(nuevoFrente);
     marcarBotones();
 
-    // scale: true mueve los frascos con transformaciones (la tarjeta gráfica) en vez de
-    // recalcular su tamaño en cada cuadro; la luz y el desenfoque se apagan mientras giran.
+    // scale: true usa transform; luz y desenfoque se apagan al girar
     const duracion = reducir ? 0.4 : 0.95;
     const escenaGiro = document.querySelector('.hero__escena');
     escenaGiro?.classList.add('hero__escena--girando');
@@ -151,8 +148,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     });
 
     if (!reducir) {
-      // Recorrido en arco, sin inclinar el frasco: los de delante suben un poco al pasar
-      // y el que cruza por detrás se apaga y se hunde, como en una vitrina giratoria.
+      // Recorrido en arco; el de atrás se apaga y se hunde
       movimientos.forEach(({ f, de, a }) => {
         const interior = f.querySelector('.frasco-luz');
         const porDetras = (de === 'izq' && a === 'der') || (de === 'der' && a === 'izq');
@@ -175,7 +171,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
 
   frascosEscena.forEach((frasco) => {
     frasco.addEventListener('click', () => {
-      // Un deslizamiento con el dedo no cuenta como toque.
+      // Deslizar no cuenta como toque
       if (acabaDeDeslizar) {
         acabaDeDeslizar = false;
         return;
@@ -189,7 +185,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     });
   });
 
-  // En el teléfono también se puede girar deslizando el dedo sobre los frascos.
+  // Girar deslizando en el teléfono
   const escenaToque = document.querySelector<HTMLElement>('.hero__escena');
   let inicioX: number | null = null;
   escenaToque?.addEventListener('touchstart', (e) => { inicioX = e.touches[0].clientX; }, { passive: true });
@@ -209,17 +205,17 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   } else {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Entrada por pasos: etiqueta → logo → lema → botones → frascos → franja de confianza.
+    // Entrada por pasos
     gsap.fromTo(pasos, { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out', stagger: 0.09, delay: 0.1 });
 
-    // La hora dorada: la luz cruza los tres frascos mientras bajas, el de atrás un poco después.
+    // Luz que cruza los frascos al bajar
     const recorrido = { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.6 };
     document.querySelectorAll('.hero__frasco .frasco-luz__franja').forEach((franja, i) => {
       gsap.fromTo(franja, { xPercent: -160 - i * 25 }, { xPercent: 160 - i * 25, ease: 'none', scrollTrigger: recorrido });
     });
     gsap.to('.hero__luz-fondo', { opacity: 0.55, ease: 'none', scrollTrigger: recorrido });
 
-    // En computadora, la luz de fondo se corre un poco hacia el ratón.
+    // Luz de fondo hacia el ratón
     const escena = document.querySelector<HTMLElement>('.hero__escena');
     if (escena && window.matchMedia('(pointer: fine)').matches) {
       const moverX = gsap.quickTo('.hero__luz-fondo', 'x', { duration: 0.8, ease: 'power3.out' });
@@ -249,7 +245,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     isolation: isolate;
   }
 
-  /* Luz cálida, como el sol de la tarde detrás de la vitrina. */
+  /* Luz cálida */
   .hero__luz-fondo {
     position: absolute;
     inset: -10% -15% 0 35%;
@@ -282,7 +278,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
 
   .hero__acciones { display: flex; flex-wrap: wrap; gap: var(--e-3); }
 
-  /* Escena de vitrina: un frasco protagonista y dos detrás, fuera de foco. */
+  /* Vitrina */
   .hero__escena {
     position: relative;
     justify-self: center;
@@ -303,7 +299,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   .hero__escena--girando :global(.frasco-luz__brillo) { visibility: hidden; }
   .hero__escena--girando :global(.hero__frasco) { filter: none !important; transition: none; will-change: transform; }
   .hero__escena :global(.hero__frasco--frente) {
-    /* Espacio fijo (no translate) para que la animación de cambio no lo descoloque. */
+    /* Espacio fijo: translate lo descolocaba al girar */
     left: 22%;
     width: 56%;
     height: 68%;
@@ -312,8 +308,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   }
   .hero__escena :global(.hero__frasco--izq),
   .hero__escena :global(.hero__frasco--der) {
-    /* Misma proporción que el puesto del frente (56 × 68 a la mitad), para que al girar
-       el frasco solo cambie de tamaño y nunca se estire ni se aplaste. */
+    /* Misma proporción que el frente (56 × 68) para no deformar al girar */
     width: 28%;
     height: 34%;
     bottom: 22%;
@@ -340,7 +335,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     z-index: 0;
   }
 
-  /* Etiqueta de precio que señala al frasco protagonista. */
+  /* Etiqueta de precio */
   .hero__precio {
     position: absolute;
     right: -4%;
@@ -369,7 +364,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
   .hero__precio-monto { font-family: var(--serif); font-size: 1.5rem; color: var(--oro-claro); line-height: 1.2; }
   .hero__precio-ver { font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--texto-2); }
 
-  /* Franja de confianza: responde lo primero que pregunta todo el mundo. */
+  /* Franja de confianza */
   .hero__confianza {
     list-style: none;
     margin: var(--e-7) auto 0;
@@ -405,7 +400,7 @@ const confianza = ['100% originales y sellados', 'Decants desde $6', 'Pago móvi
     .hero__escena :global(.hero__frasco--frente) { width: 44%; left: 28%; height: 72%; }
     .hero__escena :global(.hero__frasco--izq),
     .hero__escena :global(.hero__frasco--der) { width: 24%; height: 39.27%; }
-    /* En el teléfono la etiqueta va en una línea debajo de los frascos para no taparlos. */
+    /* Etiqueta debajo de los frascos */
     .hero__precio {
       right: auto;
       left: 50%;

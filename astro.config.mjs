@@ -4,11 +4,10 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  // Dirección pública de la web: se usa para el mapa del sitio y los enlaces al compartir.
-  // Por ahora la gratuita de Vercel; al comprar goldhourparfums.com se cambia aquí, en robots.txt y en llms.txt.
+  // Al comprar goldhourparfums.com cambiar aquí, en robots.txt y en llms.txt
   site: 'https://goldhourparfums.vercel.app',
-  // El panel de socios es privado: fuera del mapa del sitio.
+  // Panel privado: fuera del mapa del sitio
   integrations: [sitemap({ filter: (pagina) => !pagina.includes('/panel') })],
-  // La barrita de herramientas de Astro tapaba la barra del pedido en el teléfono mientras probamos.
+  // La barra de Astro tapaba la del pedido en el teléfono
   devToolbar: { enabled: false },
 });

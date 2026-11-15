@@ -17,7 +17,7 @@ import Pedido from '../components/Pedido.astro';
 import { frascos, decants, WHATSAPP, INSTAGRAM } from '../data/perfumes';
 
 const sitio = Astro.site?.href.replace(/\/$/, '') ?? '';
-// Datos para Google y para los asistentes de IA: la tienda y cada perfume con su precio en dólares.
+// Datos estructurados
 const datosTienda = {
   '@context': 'https://schema.org',
   '@type': 'Store',

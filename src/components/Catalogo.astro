@@ -1,6 +1,5 @@
 ---
-// Catálogo completo (Supabase): buscador, filtros, estado de cada perfume y botón para agregar al pedido.
-// Los datos se traen en el navegador para que un cambio en el panel se vea al instante.
+// Catálogo (Supabase). Se lee en el navegador para que los cambios del panel se vean al instante.
 import { WHATSAPP } from '../data/perfumes';
 ---
 
@@ -100,7 +99,7 @@ import { WHATSAPP } from '../data/perfumes';
     return n;
   }
 
-  // Sin foto: una placa con la marca en tipografía de la casa (nunca una foto falsa)
+  // Sin foto: placa con la marca, nunca una foto falsa
   function visual(p: PerfumeCatalogo, ancho = 400) {
     const caja = el('span', 'tarjeta__visual');
     if (p.foto_url) {
@@ -146,13 +145,13 @@ import { WHATSAPP } from '../data/perfumes';
     const abrir = el('button', 'tarjeta__abrir'); abrir.type = 'button'; abrir.setAttribute('aria-label', `Ver detalles de ${p.nombre}`);
     abrir.append(visual(p));
     abrir.addEventListener('click', () => verFicha(p));
-    // Tarjeta corta: nombre, estado, familia y precio. Las notas se ven en la ficha.
+    // Tarjeta
     const info = el('div', 'tarjeta__info');
     info.append(el('h3', 'tarjeta__nombre', p.nombre), etiquetaEstado(p));
     if (p.familia) info.append(el('p', 'tarjeta__familia', p.familia));
     info.append(el('p', 'tarjeta__precio', formatoUsd(Number(p.precio_usd))), acciones(p));
     li.append(abrir, info);
-    // Toda la tarjeta abre la ficha, menos el botón de agregar (el botón de la foto queda para el teclado)
+    // Toda la tarjeta abre la ficha, menos "Agregar"
     li.addEventListener('click', (e) => {
       const t = e.target as Element;
       if (!t.closest('.tarjeta__acciones') && !t.closest('.tarjeta__abrir')) verFicha(p);
@@ -173,7 +172,7 @@ import { WHATSAPP } from '../data/perfumes';
   }
   $('[data-cat-cerrar]').addEventListener('click', () => ficha.close());
   ficha.addEventListener('click', (e) => { if (e.target === ficha) ficha.close(); });
-  // Otras secciones (Encuentra tu perfume) abren la ficha de un perfume del catálogo por su slug
+  // Abrir ficha por slug desde otras secciones
   document.addEventListener('gh:ver-perfume', async (e) => {
     const { slug } = (e as CustomEvent<{ slug: string }>).detail;
     if (!todos.length) await cargar();
@@ -220,7 +219,7 @@ import { WHATSAPP } from '../data/perfumes';
     estado = b.dataset.catEstado!; sec.querySelectorAll('[data-cat-estado]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); filtrar();
   }));
   orden.addEventListener('change', filtrar);
-  // Buscar mientras escribe; la búsqueda se mide cuando deja de escribir, una vez por texto
+  // Búsqueda (se mide una vez por texto)
   let tBuscar = 0, tMedir = 0, ultimaMedida = '';
   buscar.addEventListener('input', () => {
     clearTimeout(tBuscar); clearTimeout(tMedir);
@@ -231,7 +230,7 @@ import { WHATSAPP } from '../data/perfumes';
     }, 1400);
   });
 
-  // Carga: solo cuando el catálogo se acerca a la pantalla, para no frenar la portada
+  // Carga al acercarse, para no frenar la portada
   async function cargar() {
     try {
       todos = await leerCatalogo();
@@ -252,8 +251,8 @@ import { WHATSAPP } from '../data/perfumes';
 </script>
 
 <style is:global>
-  /* Global a propósito: las tarjetas las crea el JS. Todo queda dentro de .catalogo para no chocar con otras secciones. */.catalogo { padding-block: var(--e-9); border-top: 1px solid var(--linea); scroll-margin-top: 72px; }.catalogo .catalogo__cabeza { max-width: 44rem; margin-bottom: var(--e-7); }.catalogo .catalogo__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) 0 var(--e-4); }.catalogo .catalogo__texto { margin: 0; color: var(--texto-2); }.catalogo .catalogo__texto b { color: var(--oro-claro); font-weight: 500; }.catalogo .catalogo__controles { display: grid; gap: var(--e-4); margin-bottom: var(--e-5); }.catalogo .buscador { display: flex; align-items: center; gap: var(--e-3); border-bottom: 1px solid var(--linea); padding: var(--e-2) 0; }.catalogo .buscador svg { width: 20px; color: var(--oro); flex: none; }.catalogo .buscador input { flex: 1; background: none; border: 0; color: var(--blanco); font: inherit; font-size: 1.125rem; padding: var(--e-2) 0; min-width: 0; }.catalogo .buscador input::placeholder { color: var(--texto-2); }.catalogo .buscador input:focus { outline: none; }.catalogo .buscador:focus-within { border-bottom-color: var(--oro); }.catalogo .filtros { display: flex; flex-wrap: wrap; gap: var(--e-4) var(--e-6); align-items: center; }.catalogo .chips { display: flex; flex-wrap: wrap; gap: var(--e-2); }.catalogo .chip { min-height: 40px; padding: 0 var(--e-4); border: 1px solid var(--linea); border-radius: 999px; background: none; color: var(--texto); font: inherit; font-size: 0.875rem; cursor: pointer; transition: background-color .2s, color .2s; }.catalogo .chip[aria-pressed='true'] { background: var(--oro); border-color: var(--oro); color: var(--negro); }.catalogo .chip:focus-visible, .catalogo .orden select:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }.catalogo .orden select { min-height: 40px; background: var(--negro-2); color: var(--texto); border: 1px solid var(--linea); border-radius: 999px; padding: 0 var(--e-4); font: inherit; font-size: 0.875rem; }.catalogo .catalogo__cuenta { color: var(--texto-2); font-size: var(--t-chico); margin: 0 0 var(--e-4); }.catalogo .catalogo__lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--e-5); }.catalogo .tarjeta { display: grid; grid-template-rows: auto 1fr; background: var(--negro-2); border: 1px solid var(--linea); border-radius: var(--radio); overflow: hidden; cursor: pointer; transition: border-color .25s, box-shadow .25s, transform .25s var(--ease-salida); }
-  /* Se ilumina en dorado al pasar o tocar: así se nota que se puede abrir */
+  /* Global: las tarjetas las crea el JS */.catalogo { padding-block: var(--e-9); border-top: 1px solid var(--linea); scroll-margin-top: 72px; }.catalogo .catalogo__cabeza { max-width: 44rem; margin-bottom: var(--e-7); }.catalogo .catalogo__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) 0 var(--e-4); }.catalogo .catalogo__texto { margin: 0; color: var(--texto-2); }.catalogo .catalogo__texto b { color: var(--oro-claro); font-weight: 500; }.catalogo .catalogo__controles { display: grid; gap: var(--e-4); margin-bottom: var(--e-5); }.catalogo .buscador { display: flex; align-items: center; gap: var(--e-3); border-bottom: 1px solid var(--linea); padding: var(--e-2) 0; }.catalogo .buscador svg { width: 20px; color: var(--oro); flex: none; }.catalogo .buscador input { flex: 1; background: none; border: 0; color: var(--blanco); font: inherit; font-size: 1.125rem; padding: var(--e-2) 0; min-width: 0; }.catalogo .buscador input::placeholder { color: var(--texto-2); }.catalogo .buscador input:focus { outline: none; }.catalogo .buscador:focus-within { border-bottom-color: var(--oro); }.catalogo .filtros { display: flex; flex-wrap: wrap; gap: var(--e-4) var(--e-6); align-items: center; }.catalogo .chips { display: flex; flex-wrap: wrap; gap: var(--e-2); }.catalogo .chip { min-height: 40px; padding: 0 var(--e-4); border: 1px solid var(--linea); border-radius: 999px; background: none; color: var(--texto); font: inherit; font-size: 0.875rem; cursor: pointer; transition: background-color .2s, color .2s; }.catalogo .chip[aria-pressed='true'] { background: var(--oro); border-color: var(--oro); color: var(--negro); }.catalogo .chip:focus-visible, .catalogo .orden select:focus-visible { outline: 2px solid var(--oro); outline-offset: 3px; }.catalogo .orden select { min-height: 40px; background: var(--negro-2); color: var(--texto); border: 1px solid var(--linea); border-radius: 999px; padding: 0 var(--e-4); font: inherit; font-size: 0.875rem; }.catalogo .catalogo__cuenta { color: var(--texto-2); font-size: var(--t-chico); margin: 0 0 var(--e-4); }.catalogo .catalogo__lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: var(--e-5); }.catalogo .tarjeta { display: grid; grid-template-rows: auto 1fr; background: var(--negro-2); border: 1px solid var(--linea); border-radius: var(--radio); overflow: hidden; cursor: pointer; transition: border-color .25s, box-shadow .25s, transform .25s var(--ease-salida); }
+  /* Borde dorado al pasar */
   .catalogo .tarjeta:not(.tarjeta--cargando):hover, .catalogo .tarjeta:not(.tarjeta--cargando):active { border-color: var(--oro); box-shadow: 0 0 0 1px var(--oro), 0 14px 32px -16px rgba(201, 165, 92, .55); transform: translateY(-3px); }
   .catalogo .tarjeta:hover .tarjeta__nombre, .catalogo .tarjeta:active .tarjeta__nombre { color: var(--oro-claro); }
   .catalogo .tarjeta__visual img { transition: transform .4s var(--ease-salida); }

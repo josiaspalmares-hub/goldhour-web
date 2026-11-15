@@ -1,6 +1,4 @@
-// Logins del panel de socios: listar, crear, cambiar contraseña o nombre, pausar y borrar accesos.
-// Corre en el servidor de Supabase (Edge Function) porque crear cuentas necesita la clave secreta (service_role),
-// que nunca va al navegador. Solo responde a quien ya es socio.
+// Logins del panel. En el servidor porque necesita service_role, que nunca va al navegador. Solo para socios.
 import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 
 const ORIGENES = [
@@ -18,7 +16,7 @@ class ErrorVisible extends Error {
   constructor(mensaje: string, public estado = 400) { super(mensaje); }
 }
 
-// Freno simple por socio: 30 acciones cada 10 minutos (por instancia; el login en sí lo limita Supabase Auth)
+// 30 acciones cada 10 min por socio (por instancia)
 const usos = new Map<string, number[]>();
 function frenar(id: string) {
   const ahora = Date.now();
@@ -103,7 +101,7 @@ async function cambiar(yo: string, cuerpo: Record<string, unknown>) {
   if (cuerpo.clave !== undefined) datos.password = claveValida(cuerpo.clave);
   if (cuerpo.activo !== undefined) {
     if (id === yo) throw new ErrorVisible('No puedes pausar tu propio acceso.');
-    datos.ban_duration = cuerpo.activo ? 'none' : '876000h'; // pausado hasta que otro socio lo active
+    datos.ban_duration = cuerpo.activo ? 'none' : '876000h';
   }
   if (Object.keys(datos).length) {
     const { error } = await admin.auth.admin.updateUserById(id, datos);
@@ -122,7 +120,7 @@ async function borrar(yo: string, cuerpo: Record<string, unknown>) {
   const id = idValido(cuerpo.id);
   if (id === yo) throw new ErrorVisible('No puedes borrar tu propio acceso.');
   await esSocio(id);
-  const { error } = await admin.auth.admin.deleteUser(id); // la fila de socios se borra sola (ON DELETE CASCADE)
+  const { error } = await admin.auth.admin.deleteUser(id); // ON DELETE CASCADE
   if (error) throw error;
 }
 
@@ -156,7 +154,7 @@ Deno.serve(async (req) => {
     return responder({ logins: await listar(yo) });
   } catch (error) {
     if (error instanceof ErrorVisible) return responder({ error: error.message }, error.estado);
-    console.error(error); // el detalle queda en los registros de Supabase, no se le muestra a nadie
+    console.error(error); // solo en los registros
     return responder({ error: 'No se pudo completar. Intenta de nuevo.' }, 500);
   }
 });

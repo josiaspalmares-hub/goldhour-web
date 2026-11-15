@@ -1,6 +1,4 @@
-// Medición propia y anónima: visitas, perfumes vistos, búsquedas, agregados al pedido y clics a WhatsApp.
-// Sin cookies ni datos personales: solo un identificador al azar que dura lo que dura la visita (sessionStorage).
-// Si la medición falla, la página sigue funcionando igual: solo se avisa en la consola.
+// Medición anónima: sin cookies, un id al azar por visita (sessionStorage). Si falla, solo avisa en la consola.
 import { config, SupabaseNoConfigurado } from './supabase';
 
 export type TipoEvento = 'visita' | 'ver_perfume' | 'whatsapp' | 'busqueda' | 'agregar';
@@ -19,7 +17,7 @@ function sesion(): string {
 
 const recorta = (t: string | undefined, n: number) => (t ? t.trim().slice(0, n) : undefined);
 
-// Las pruebas en la propia PC no se cuentan, salvo que la dirección lleve ?medir (para probar la medición)
+// En localhost no se mide, salvo con ?medir
 const esPrueba = () => ['localhost', '127.0.0.1'].includes(location.hostname) && !location.search.includes('medir');
 
 export function medir(tipo: TipoEvento, datos: { perfume?: string; detalle?: string } = {}) {
@@ -36,7 +34,7 @@ export function medir(tipo: TipoEvento, datos: { perfume?: string; detalle?: str
     pagina: location.pathname.slice(0, 60),
     sesion: sesion(),
   };
-  // keepalive: el evento llega aunque el clic abra WhatsApp y la persona salga de la página
+  // keepalive: llega aunque se abra WhatsApp
   fetch(`${cfg.url}/rest/v1/eventos`, {
     method: 'POST',
     keepalive: true,

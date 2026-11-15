@@ -1,7 +1,5 @@
 ---
-// "Entra en el frasco": al bajar, la cámara se mete en el Le Male Elixir y cada etapa de su perfume (salida, corazón, fondo)
-// se ve con un video real de sus ingredientes (Pexels, licencia libre), con polvo dorado flotando encima.
-// Los videos se bajan uno por uno solo cuando hacen falta, y en el teléfono se usan versiones verticales más livianas.
+// Entra en el frasco: un video por etapa (Pexels), cargados de a uno; verticales en el teléfono
 import { getImage } from 'astro:assets';
 import elixir from '../assets/perfumes/le-male-elixir.png';
 import { WHATSAPP } from '../data/perfumes';
@@ -112,7 +110,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('El navegador no permite dibujar en canvas');
 
-  // ---------- Videos: se bajan de a uno y solo suena (se reproduce) el que se ve ----------
+  // ---------- Videos: solo corre el que se ve ----------
   const cargarVideo = (v: HTMLVideoElement | undefined) => {
     if (!v || v.getAttribute('src')) return;
     v.src = movil ? v.dataset.movil! : v.dataset.pc!;
@@ -123,14 +121,14 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
     if (i === activo) return;
     activo = i;
     cargarVideo(videos[i]);
-    cargarVideo(videos[i + 1]); // el siguiente se va bajando mientras se ve este
+    cargarVideo(videos[i + 1]);
     videos.forEach((v, k) => {
       if (k === i) v.play().catch((e: DOMException) => { if (e.name !== 'AbortError' && e.name !== 'NotAllowedError') throw e; });
       else v.pause();
     });
   }
 
-  // ---------- Polvo dorado: motas de luz que suben despacio ----------
+  // ---------- Polvo dorado ----------
   let ancho = 0, alto = 0, escala = 1;
   const motas = Array.from({ length: movil ? 40 : 80 }, () => ({
     x: Math.random(), y: Math.random(), r: 0.6 + Math.random() * 1.8, sube: 0.008 + Math.random() * 0.025, fase: Math.random() * 6.28,
@@ -164,7 +162,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
   const encender = () => { if (!cuadro) { ultimo = 0; cuadro = requestAnimationFrame(dibujar); } };
   const apagar = () => { cancelAnimationFrame(cuadro); cuadro = 0; videos.forEach((v) => v.pause()); activo = -1; };
 
-  // ---------- Precio y estado al día, desde el catálogo (si falla, queda el precio escrito) ----------
+  // ---------- Precio del catálogo (si falla, queda el escrito) ----------
   async function actualizarPrecio() {
     let p;
     try {
@@ -187,12 +185,12 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
   window.addEventListener('resize', medir);
 
   if (reducir) {
-    // Sin movimiento: todo visible de una vez, sin fijar la pantalla y sin videos (queda la imagen de cada uno)
+    // Sin movimiento: todo visible, sin videos
     seccion.classList.add('inmersion--quieta');
     actualizarPrecio();
   } else {
     new IntersectionObserver(([e]) => (e.isIntersecting ? encender() : apagar()), { rootMargin: '100px' }).observe(seccion);
-    // El primer video se empieza a bajar cuando la sección se acerca (después de que cargó la portada)
+    // Primer video al acercarse
     const vigilarCercania = () => {
       const cerca = new IntersectionObserver(([e]) => {
         if (!e.isIntersecting) return;
@@ -212,20 +210,20 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
       defaults: { ease: 'none' },
       scrollTrigger: { trigger: seccion, start: 'top top', end: 'bottom bottom', scrub: 0.6 },
       onUpdate: () => {
-        // Se ve (y se reproduce) el video que más se nota en este momento
+        // Corre el video más visible
         let mayor = 0, cual = -1;
         capas.forEach((c, i) => { videos[i].style.opacity = String(c.o); if (c.o > mayor) { mayor = c.o; cual = i; } });
         if (cual >= 0 && mayor > 0.05 && cuadro) mostrarVideo(cual);
       },
     });
 
-    // 1. La cámara se acerca al frasco y entra en el líquido dorado
+    // 1. Entrar al frasco
     tl.to('.inmersion__intro', { opacity: 0, y: -40, duration: 0.9 }, 0.2)
       .fromTo('.inmersion__frasco', { scale: 1 }, { scale: 14, duration: 3.2, ease: 'power3.in' }, 0)
       .to(capas[0], { o: 1, duration: 1 }, 1.6)
       .to('.inmersion__frasco', { opacity: 0, filter: 'blur(10px)', duration: 0.7 }, 2.1);
 
-    // 2. Cada etapa: su video aparece encima del anterior y sus notas pasan hacia la cámara
+    // 2. Etapas
     seccion.querySelectorAll<HTMLElement>('.inmersion__etapa').forEach((etapa, i) => {
       const inicio = 3.4 + i * 2;
       tl.to(capas[i + 1], { o: 1, duration: 0.6 }, inicio - 0.3)
@@ -239,7 +237,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
       });
     });
 
-    // 3. Cierre: el video se oscurece y aparece el perfume para pedirlo
+    // 3. Cierre
     tl.to('.inmersion__oscuro', { opacity: 1, duration: 0.8 }, 9.5)
       .fromTo('.inmersion__final', { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8 }, 9.7)
       .to({}, { duration: 0.6 });
@@ -252,7 +250,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
 
   .inmersion__videos { position: absolute; inset: 0; background: radial-gradient(80% 70% at 50% 45%, #3a2410, #0d0d0d 75%); }
   .inmersion__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
-  /* Viñeta negra en los bordes: el video se funde con el negro mate de la marca y el texto se lee */
+  /* Viñeta */
   .inmersion__velo {
     position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(120% 90% at 50% 50%, transparent 40%, rgba(13, 13, 13, 0.75) 100%), rgba(13, 13, 13, 0.18);
@@ -262,8 +260,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
 
   .inmersion__intro { position: absolute; top: 11%; left: 0; right: 0; text-align: center; padding-inline: var(--e-5); z-index: 2; }
   .inmersion__titulo { font-family: var(--serif); font-size: var(--t-h2); font-weight: 500; color: var(--blanco); line-height: 1.05; margin: var(--e-3) auto 0; max-width: 16ch; }
-  /* "por dentro" en oro metálico, como la lámina del logo */
-  .inmersion__titulo em { background: var(--oro-lamina); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .inmersion__titulo em { color: var(--oro); }
 
   .inmersion__frasco {
     position: relative;
@@ -277,7 +274,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
   }
 
   .inmersion__etapa { position: absolute; inset: 0; pointer-events: none; z-index: 3; }
-  /* Nombre de la etapa en una píldora oscura de vidrio: se lee sobre cualquier video */
+  /* Nombre de la etapa */
   .inmersion__etapa-nombre {
     position: absolute; top: 12%; left: 50%; translate: -50% 0; margin: 0; opacity: 0;
     padding: var(--e-2) var(--e-4); border: 1px solid rgba(201, 165, 92, 0.45); border-radius: 999px;
@@ -294,13 +291,13 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
     font-size: clamp(2.75rem, 1.5rem + 5vw, 6.5rem);
     font-weight: 600;
     color: #fffaf0;
-    /* Sombra en capas: borde nítido cerca de la letra y un halo oscuro amplio para despegarla del video */
+    /* Sombra en capas para leer sobre el video */
     text-shadow: 0 2px 3px rgba(0, 0, 0, 0.55), 0 4px 18px rgba(0, 0, 0, 0.75), 0 0 48px rgba(0, 0, 0, 0.6);
     white-space: nowrap;
     opacity: 0;
     will-change: transform, opacity, filter;
   }
-  /* Sombra suave detrás de cada palabra */
+  /* Sombra de cada palabra */
   .inmersion__nota::before {
     content: ''; position: absolute; inset: -35% -18%; z-index: -1;
     background: radial-gradient(closest-side, rgba(13, 13, 13, 0.55), transparent);
@@ -320,7 +317,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
     .inmersion__acciones { flex-direction: column; width: 100%; max-width: 20rem; }
   }
 
-  /* Sin movimiento: se muestra todo de una vez, sin fijar la pantalla */
+  /* Sin movimiento */
   .inmersion--quieta { height: auto; }
   .inmersion--quieta .inmersion__escena { position: relative; height: auto; min-height: 100svh; padding-block: var(--e-9); gap: var(--e-6); }
   .inmersion--quieta .inmersion__video[data-escena='3'] { opacity: 1; }

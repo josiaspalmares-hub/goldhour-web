@@ -1,5 +1,5 @@
 ---
-// Cinta con las casas que trabajamos; sale del catálogo, así que si se agrega una marca aparece sola.
+// Cinta de marcas (sale del catálogo)
 import { frascos, decants } from '../data/perfumes';
 
 const casas = [...new Set([...frascos, ...decants].map((p) => p.casa))].sort((a, b) => a.localeCompare(b, 'es'));
@@ -10,7 +10,7 @@ const casas = [...new Set([...frascos, ...decants].map((p) => p.casa))].sort((a,
     <ul class="marcas__lista" role="list">
       {casas.map((c) => <li>{c}</li>)}
     </ul>
-    <!-- copia para que la cinta no tenga cortes; los lectores de pantalla la ignoran -->
+    <!-- Copia para el bucle -->
     <ul class="marcas__lista" role="list" aria-hidden="true">
       {casas.map((c) => <li>{c}</li>)}
     </ul>
@@ -22,7 +22,7 @@ const casas = [...new Set([...frascos, ...decants].map((p) => p.casa))].sort((a,
     overflow: hidden;
     border-block: 1px solid var(--linea);
     padding-block: var(--e-5);
-    /* los bordes se desvanecen en vez de cortar las palabras */
+    /* Bordes desvanecidos */
     mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   }
   .marcas__pista { display: flex; width: max-content; animation: marcas-corre 50s linear infinite; }

@@ -1,5 +1,5 @@
 ---
-// Ficha honesta de un perfume, en una ventana que se abre sobre la página.
+// Ficha de un perfume
 import { Image } from 'astro:assets';
 import Nivel from './Nivel.astro';
 import Frasquitos from './Frasquitos.astro';
@@ -8,11 +8,11 @@ import { fotoDe } from '../data/fotos';
 
 interface Props {
   perfume: Perfume;
-  // La ficha toma el color de la sección de donde se abre: negra en la vitrina, marfil en los decants.
+  // Negra en la vitrina, marfil en los decants
   tema?: 'negro' | 'marfil';
 }
 const { perfume, tema = 'negro' } = Astro.props;
-// En los decants se muestra el frasquito del tamaño elegido; arranca con el primero.
+// Decants: arranca con el primer tamaño
 const esDecant = perfume.tamanos.length > 1;
 const { ficha } = perfume;
 const piramide = [
@@ -78,7 +78,7 @@ const piramide = [
     color: var(--texto);
     overflow: auto;
   }
-  /* Versión marfil: se redefinen los colores solo dentro de la ficha, todo lo demás se adapta solo. */
+  /* Versión marfil */
   .ficha--marfil {
     --fondo-ficha: var(--marfil);
     --blanco: var(--tinta);
@@ -127,10 +127,10 @@ const piramide = [
     background: radial-gradient(closest-side at 50% 80%, rgba(201, 165, 92, 0.18), transparent 70%);
   }
   .ficha__foto :global(.ficha__frasco) { max-height: 420px; width: auto; object-fit: contain; filter: drop-shadow(0 24px 24px rgba(0, 0, 0, 0.6)); }
-  /* Decant: el frasco un poco a la izquierda y, a su lado, el frasquito del tamaño elegido. */
+  /* Decant con frasquito */
   .ficha__foto--decant { position: relative; place-items: end center; }
   .ficha__foto--decant :global(.ficha__frasco) { max-height: 400px; translate: -24% 0; transition: translate 0.55s var(--ease-salida); }
-  /* Con el frasco completo el perfume vuelve al centro de la foto. */
+  /* Frasco completo: al centro */
   :global(.ficha[data-elegido^='Frasco']) .ficha__foto--decant :global(.ficha__frasco) { translate: 0 0; }
   @media (prefers-reduced-motion: reduce) { .ficha__foto--decant :global(.ficha__frasco) { transition: none; } }
   .ficha__frasquitos { position: absolute; right: 6%; bottom: 0; width: 18%; height: 62%; }
@@ -143,7 +143,7 @@ const piramide = [
   .ficha__piramide { margin: 0 0 var(--e-5); display: grid; gap: var(--e-3); padding-block: var(--e-4); border-block: 1px solid var(--linea); }
   .ficha__piramide div { display: grid; grid-template-columns: 52px 92px 1fr; gap: var(--e-3); align-items: center; }
   .ficha__piramide dd { margin: 0; color: var(--blanco); }
-  /* Cada fila es una capa de la pirámide: arriba la salida (lo primero que se siente), abajo el fondo (lo que dura) */
+  /* Pirámide olfativa: salida arriba, fondo abajo */
   .ficha__capa {
     --arriba: calc(var(--i) / 3 * 50%);
     --abajo: calc((var(--i) + 1) / 3 * 50%);
@@ -152,7 +152,7 @@ const piramide = [
     background: linear-gradient(180deg, var(--oro-claro), var(--oro));
     opacity: calc(0.55 + var(--i) * 0.2);
   }
-  /* Al abrir la ficha la pirámide se arma desde la base y luego aparecen las notas */
+  /* Pirámide que se arma desde la base */
   .ficha[open] .ficha__capa { animation: capa-arma 0.5s var(--ease-salida) calc(0.15s + (2 - var(--i)) * 0.12s) both; }
   .ficha[open] .ficha__piramide dd,
   .ficha[open] .ficha__piramide dt { animation: nota-entra 0.45s var(--ease-salida) calc(0.3s + (2 - var(--i)) * 0.12s) both; }
