@@ -36,7 +36,7 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
           data-escena={i}
           data-pc={`${videoDe(e.video)}-pc.mp4`}
           data-movil={`${videoDe(e.video)}-movil.mp4`}
-          poster={`${videoDe(e.video)}-cartel.webp`}
+          data-cartel={`${videoDe(e.video)}-cartel.webp`}
           muted
           loop
           playsinline
@@ -55,8 +55,8 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
 
     <img
       class="inmersion__frasco"
-      src={fotoGrande.src}
-      srcset={`${fotoChica.src} 540w, ${fotoGrande.src} 900w`}
+      data-src={fotoGrande.src}
+      data-srcset={`${fotoChica.src} 540w, ${fotoGrande.src} 900w`}
       sizes="(max-width: 767px) 50vw, 26vw"
       width={elixir.width}
       height={elixir.height}
@@ -183,6 +183,22 @@ const videoDe = (n: string) => `/media/elixir/${n}`;
 
   medir();
   window.addEventListener('resize', medir);
+
+  // Carteles y frasco: se piden al acercarse, no al abrir la página
+  const fotoFrasco = seccion.querySelector<HTMLImageElement>('.inmersion__frasco')!;
+  const ponerFotos = () => {
+    videos.forEach((v) => { v.poster = v.dataset.cartel!; });
+    fotoFrasco.srcset = fotoFrasco.dataset.srcset!;
+    fotoFrasco.src = fotoFrasco.dataset.src!;
+  };
+  const fotosCerca = new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) return;
+    fotosCerca.disconnect();
+    ponerFotos();
+  }, { rootMargin: '1200px 0px' });
+  // Después de que cargue la portada
+  if (document.readyState === 'complete') fotosCerca.observe(seccion);
+  else window.addEventListener('load', () => fotosCerca.observe(seccion), { once: true });
 
   if (reducir) {
     // Sin movimiento: todo visible, sin videos

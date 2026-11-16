@@ -13,28 +13,36 @@ interface Props {
 }
 const { foto, alt, ancho, sizes, principal = false, clase = '' } = Astro.props;
 
-// Calidad 72: igual a la vista y 13 % más liviana
-const grande = await getImage({ src: foto, width: ancho, format: 'webp', quality: 72 });
-const chica = await getImage({ src: foto, width: Math.round(ancho * 0.6), format: 'webp', quality: 72 });
+// Tres tamaños en AVIF (pesa menos de la mitad) y WebP de respaldo
+const anchos = [Math.round(ancho * 0.4), Math.round(ancho * 0.6), ancho];
+const crear = (format: 'avif' | 'webp', quality: number) =>
+  Promise.all(anchos.map((width) => getImage({ src: foto, width, format, quality })));
+const avif = await crear('avif', 55);
+const webp = await crear('webp', 72);
+const lista = (versiones: { src: string }[]) => versiones.map((v, i) => `${v.src} ${anchos[i]}w`).join(', ');
 ---
 
-<div class={`frasco-luz ${clase}`} style={`--mascara: url(${grande.src})`}>
-  <img
-    src={grande.src}
-    srcset={`${chica.src} ${Math.round(ancho * 0.6)}w, ${grande.src} ${ancho}w`}
-    sizes={sizes}
-    width={foto.width}
-    height={foto.height}
-    alt={alt}
-    fetchpriority={principal ? 'high' : 'auto'}
-    decoding="async"
-  />
+<div class={`frasco-luz ${clase}`}>
+  <picture>
+    <source type="image/avif" srcset={lista(avif)} sizes={sizes} />
+    <img
+      src={webp[0].src}
+      srcset={lista(webp)}
+      sizes={sizes}
+      width={foto.width}
+      height={foto.height}
+      alt={alt}
+      fetchpriority={principal ? 'high' : 'low'}
+      decoding="async"
+    />
+  </picture>
   <div class="frasco-luz__brillo" aria-hidden="true"><span class="frasco-luz__franja"></span></div>
 </div>
 
 <style>
   /* Frasco y luz con el mismo encuadre */
   .frasco-luz { position: relative; width: 100%; height: 100%; }
+  .frasco-luz picture { display: contents; }
   .frasco-luz img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; }
 
   .frasco-luz__brillo {
@@ -66,10 +74,13 @@ const chica = await getImage({ src: foto, width: Math.round(ancho * 0.6), format
 </style>
 
 <script>
-  // Luz al cargar la foto
+  // Luz al cargar la foto: la máscara usa la misma foto ya bajada
   document.querySelectorAll<HTMLElement>('.frasco-luz').forEach((frasco) => {
     const foto = frasco.querySelector('img');
-    const encender = () => frasco.classList.add('frasco-luz--listo');
+    const encender = () => {
+      frasco.style.setProperty('--mascara', `url("${foto!.currentSrc || foto!.src}")`);
+      frasco.classList.add('frasco-luz--listo');
+    };
     if (foto?.complete) encender();
     else foto?.addEventListener('load', encender, { once: true });
   });
