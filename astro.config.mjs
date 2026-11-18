@@ -10,4 +10,6 @@ export default defineConfig({
   integrations: [sitemap({ filter: (pagina) => !pagina.includes('/panel') })],
   // La barra de Astro tapaba la del pedido en el teléfono
   devToolbar: { enabled: false },
+  // Ningún script dentro del HTML: así la CSP no necesita 'unsafe-inline'
+  vite: { build: { assetsInlineLimit: 0 } },
 });

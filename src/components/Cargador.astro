@@ -6,16 +6,8 @@ import monogramaSvg from '../assets/marca/monograma-G-oro.svg?raw';
 const monograma = monogramaSvg.replace('<path ', '<path pathLength="1" ');
 ---
 
-<script is:inline>
-  // Ya vista: se marca antes de pintar
-  try {
-    if (sessionStorage.getItem('gh-entrada')) document.documentElement.classList.add('entrada-vista');
-    else sessionStorage.setItem('gh-entrada', '1');
-  } catch (e) {
-    // Sin almacenamiento: se muestra igual
-    if (!(e instanceof DOMException)) throw e;
-  }
-</script>
+<!-- Ya vista: se marca antes de pintar (archivo aparte por la CSP) -->
+<script is:inline src="/entrada.js"></script>
 
 <div class="cargador" aria-hidden="true">
   <div class="cargador__g" set:html={monograma} />
